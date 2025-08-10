@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String?  @unique
+  robloxUsername String @unique  // Tambahkan @unique
+  robloxId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  robuxAmount Int
+  totalPrice  Int      // dalam rupiah
+  method      String   // "gamepass" atau "login"
+  status      String   @default("pending") // "pending", "completed", "failed"
+  paymentProof String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Settings {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String
+  subtitle  String?
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String   // akan di-hash
+  role      String   @default("admin") // admin, super_admin
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model News {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  excerpt   String?
+  imageUrl  String?
+  isPublished Boolean @default(false)
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RobuxStock {
+  id          Int      @id @default(autoincrement())
+  amount      Int      @unique // jumlah robux (100, 400, 800, dll)
+  stock       Int      @default(0) // stok tersedia
+  price       Int      // harga dalam rupiah
+  isActive    Boolean  @default(true)
+  allowOrders Boolean  @default(true) // mengatur apakah user bisa order
+  updatedAt   DateTime @updatedAt
+}
+
+model Discount {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // kode discount (misal: NEWUSER10)
+  name        String   // nama discount untuk admin
+  description String?  // deskripsi discount
+  type        String   // "percentage" atau "fixed"
+  value       Int      // nilai discount (10 untuk 10% atau 5000 untuk Rp 5.000)
+  maxUses     Int      @default(0) // maksimal penggunaan (0 = unlimited)
+  currentUses Int      @default(0) // jumlah yang sudah digunakan
+  minPurchase Int      @default(0) // minimal pembelian untuk bisa pakai discount
+  isActive    Boolean  @default(true)
+  validFrom   DateTime @default(now())
+  validUntil  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

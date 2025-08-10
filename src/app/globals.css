@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
 :root {
+  /* Primary Colors - Mudah diubah dari sini */
+  --primary: #56DFCF;
+  --primary-dark: #45B8AA;
+  --primary-light: #7AE8D9;
+  --primary-50: #F0FDFC;
+  --primary-100: #CCFBF1;
+  --primary-200: #99F6E4;
+  --primary-300: #5EEAD4;
+  --primary-400: #2DD4BF;
+  --primary-500: #56DFCF;
+  --primary-600: #0D9488;
+  --primary-700: #0F766E;
+  --primary-800: #115E59;
+  --primary-900: #134E4A;
+  
+  /* Background & Foreground */
   --background: #ffffff;
   --foreground: #171717;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  
+  /* Border & Ring */
+  --border: #e2e8f0;
+  --ring: var(--primary);
 }
 
 @theme inline {
+  /* Colors */
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  
+  /* Fonts */
+  --font-poppins: var(--font-poppins), system-ui, sans-serif;
+  --font-sans: var(--font-poppins), system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --border: #334155;
   }
+}
+
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--primary-200);
+  color: var(--primary-900);
+}
+
+/* Custom scrollbar dengan warna primary */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-600) 100%);
 }
