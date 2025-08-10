@@ -16,11 +16,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-2xl">Z</span>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">ZeeBoost</span>
+                        <div className="flex items-center space-x-3 mb-6">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="w-20 h-20 object-contain"
+              />
             </div>
             <p className="text-gray-300 mb-6 max-w-md leading-relaxed text-lg">
               Platform topup Robux terpercaya #1 di Indonesia dengan harga terjangkau, 

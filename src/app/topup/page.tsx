@@ -39,10 +39,12 @@ export default function TopupPage() {
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [couponError, setCouponError] = useState('');
   
+  // Tambahkan state untuk metode pembayaran
+  const [paymentMethod, setPaymentMethod] = useState('QRIS');
+  
   // Tambahkan state untuk robux stock
   const [robuxStock, setRobuxStock] = useState<any[]>([]);
   
-  // Tambahkan state baru untuk gamepass flow
   const [gamepassStep, setGamepassStep] = useState<'create' | 'verify' | 'completed'>('create');
   const [requiredGamepassPrice, setRequiredGamepassPrice] = useState(0);
   const [isCheckingGamepass, setIsCheckingGamepass] = useState(false);
@@ -301,7 +303,6 @@ export default function TopupPage() {
   
   // Fungsi terpisah untuk membuat transaksi
   const createTransaction = async () => {
-    // Tambahkan null check
     if (!robloxUser) {
       showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
       return;
@@ -309,6 +310,7 @@ export default function TopupPage() {
     
     setIsLoading(true);
     try {
+      // Buat transaksi terlebih dahulu
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -330,7 +332,39 @@ export default function TopupPage() {
       const transaction = await response.json();
       
       if (response.ok) {
-        showNotification('Berhasil', `Transaksi berhasil dibuat! ID: ${transaction.id}`, 'success');
+        // Setelah transaksi berhasil dibuat, langsung buat pembayaran Tripay
+        // Di dalam fungsi createTransaction
+        const paymentData = {
+          transactionId: transaction.id,
+          amount: calculatePrice(),
+          customerName: robloxUser.username,
+          customerEmail: email.trim(),
+          customerPhone: whatsappNumber.trim(),
+          paymentMethod: paymentMethod // Pastikan ini ada dan menggunakan state yang benar
+        };
+        
+        console.log('=== Sending to Tripay API ===');
+        console.log('Payment data:', paymentData);
+        
+        const paymentResponse = await fetch('/api/payment/tripay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentData)
+        });
+        
+        const paymentResult = await paymentResponse.json();
+        console.log('Payment response:', paymentResult);
+        
+        if (paymentResult.success) {
+          // Redirect ke halaman pembayaran Tripay
+          window.open(paymentResult.paymentUrl, '_blank');
+          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+        } else {
+          showNotification('Error', 'Gagal membuat pembayaran!', 'error');
+          return;
+        }
+        
+        // Reset form
         setUsername('');
         setRobloxUser(null);
         setRobuxAmount(100);
@@ -731,6 +765,26 @@ export default function TopupPage() {
                     </div>
                   )}
                 </div>
+                {/* Tambahkan dropdown metode pembayaran sebelum tombol */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Metode Pembayaran
+                  </label>
+                  <select 
+                    value={paymentMethod} 
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="QRIS">QRIS (Semua E-Wallet)</option>
+                    <option value="BRIVA">BRI Virtual Account</option>
+                    <option value="BNIVA">BNI Virtual Account</option>
+                    <option value="BSIVA">BSI Virtual Account</option>
+                    <option value="MANDIRIVA">Mandiri Virtual Account</option>
+                    <option value="PERMATAVA">Permata Virtual Account</option>
+                    <option value="ALFAMART">Alfamart</option>
+                    <option value="INDOMARET">Indomaret</option>
+                  </select>
+                </div>
                 
                 {/* Price Summary - Responsive */}
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -754,11 +808,13 @@ export default function TopupPage() {
                   </div>
                 </div>
                 
+                
+
                 {/* Submit Button - Responsive */}
                 <button
                   onClick={handleTopup}
                   disabled={!robloxUser || isLoading || !whatsappNumber.trim() || !email.trim() || !canOrder}
-                  className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
+                  className="w-full bg-primary-500 hover:bg-primary-dark text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -766,9 +822,9 @@ export default function TopupPage() {
                       <span>Memproses...</span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-2 ">
                       <i className="fas fa-shopping-cart"></i>
-                      <span>Buat Pesanan</span>
+                      <span >Buat Pesanan</span>
                     </div>
                   )}
                 </button>

@@ -10,12 +10,13 @@ export default function Navbar() {
     <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+                    {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Z</span>
-            </div>
-            <span className="text-xl font-bold text-foreground">ZeeBoost</span>
+            <img 
+              src="/logo.png" 
+              alt="Logo" 
+              className="w-20 h-20 object-contain"
+            />
           </Link>
 
           {/* Desktop Menu */}
