@@ -32,17 +32,17 @@ export async function POST(request: NextRequest) {
     
     switch (status) {
       case 'PAID':
-        newStatus = 'completed';
+        newStatus = 'completed';  // ✅ Success/Selesai
         break;
       case 'EXPIRED':
       case 'FAILED':
-        newStatus = 'failed';
+        newStatus = 'failed';     // ❌ Gagal
         break;
       case 'UNPAID':
-        newStatus = 'processing';
+        newStatus = 'processing'; // 🔄 Sudah bayar, sedang diproses
         break;
       default:
-        newStatus = 'pending';
+        newStatus = 'pending';    // ⏳ Belum bayar
     }
 
     const updatedTransaction = await prisma.transaction.update({

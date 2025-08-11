@@ -65,31 +65,63 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Get current robux price from settings
-    let basePrice = 13500; // default fallback
+    // Get current robux price from robux stock (yang diset admin)
+    let basePrice = 0;
+    let selectedRobuxStock = null; // Tambahkan variable ini
     try {
-      console.log('Getting robux price from settings...');
-      const pricePerRobux = await prisma.settings.findUnique({
-        where: { key: 'robux_price_per_100' }
+      console.log('Getting robux price from stock...');
+      
+      // Cari stock yang sesuai dengan robuxAmount yang diminta
+      const robuxStock = await prisma.robuxStock.findFirst({
+        where: {
+          amount: robuxAmount,
+          isActive: true
+        }
       });
       
-      if (pricePerRobux?.value) {
-        basePrice = parseInt(pricePerRobux.value);
+      if (robuxStock) {
+        // Gunakan harga dari stock yang sesuai
+        basePrice = robuxStock.price;
+        selectedRobuxStock = robuxStock; // Simpan reference
+        console.log(`Using price from stock for ${robuxAmount} Robux: ${basePrice}`);
+      } else {
+        // Jika tidak ada stock yang tepat, ambil harga per 100 Robux dari stock pertama
+        const defaultStock = await prisma.robuxStock.findFirst({
+          where: {
+            isActive: true
+          },
+          orderBy: {
+            amount: 'asc'
+          }
+        });
+        
+        if (defaultStock) {
+          // Hitung harga berdasarkan rasio
+          basePrice = Math.round((robuxAmount / defaultStock.amount) * defaultStock.price);
+          selectedRobuxStock = defaultStock; // Simpan reference
+          console.log(`Calculated price based on ${defaultStock.amount} Robux stock: ${basePrice}`);
+        } else {
+          throw new Error('No active robux stock found');
+        }
       }
-      console.log('Base price:', basePrice);
-    } catch (settingsError) {
-      console.error('Settings error:', settingsError);
-      // Continue with default price
+      
+      console.log('Final base price:', basePrice);
+    } catch (stockError) {
+      console.error('Stock price error:', stockError);
+      return NextResponse.json(
+        { error: 'Harga Robux tidak tersedia. Silakan hubungi admin.' },
+        { status: 500 }
+      );
     }
     
-    const totalPrice = (robuxAmount / 100) * basePrice;
+    const totalPrice = basePrice;
     console.log('Calculated total price:', totalPrice);
     
     // Create or find user
     let user;
     try {
       console.log('Creating/finding user...');
-      const userData = {
+      const userData: any = {
         robloxUsername,
         robloxId: robloxId.toString() // Ensure it's a string
       };
@@ -101,17 +133,21 @@ export async function POST(request: NextRequest) {
       
       console.log('User data:', userData);
       
+      // Di bagian user creation/update (sekitar line 100)
       user = await prisma.user.upsert({
         where: { robloxUsername },
         update: {
-          robloxId: robloxId.toString()
-          // Don't update email in update to avoid conflicts
+          robloxId: robloxId.toString(),
+          ...(whatsappNumber && { whatsappNumber: whatsappNumber.trim() })
         },
-        create: userData,
+        create: {
+          ...userData,
+          ...(whatsappNumber && { whatsappNumber: whatsappNumber.trim() })
+        },
       });
       
       console.log('User created/found:', user.id);
-    } catch (userError) {
+    } catch (userError: any) {
       console.error('User creation error:', userError);
       throw new Error(`Failed to create/find user: ${userError.message}`);
     }
@@ -120,12 +156,36 @@ export async function POST(request: NextRequest) {
     let transaction;
     try {
       console.log('Creating transaction...');
+      
+      // Hitung nilai diskon yang sebenarnya
+      let calculatedDiscount = 0;
+      if (appliedDiscount) {
+        if (appliedDiscount.type === 'percentage') {
+          calculatedDiscount = Math.round(totalPrice * (appliedDiscount.value / 100));
+        } else {
+          calculatedDiscount = appliedDiscount.value;
+        }
+      } else if (discount) {
+        calculatedDiscount = discount;
+      }
+      
       const transactionData = {
         userId: user.id,
         robuxAmount: parseInt(robuxAmount),
-        totalPrice: Math.round(finalPrice || totalPrice),
+        totalPrice: Math.round(totalPrice),
+        finalPrice: Math.round(finalPrice || totalPrice),
         method: method.toString(),
-        status: 'pending'
+        status: 'pending',
+        // TAMBAHKAN INI: Simpan robuxStockId
+        robuxStockId: selectedRobuxStock?.id || null,
+        // Tambahkan data kupon dan diskon
+        couponCode: appliedDiscount ? appliedDiscount.code : (couponCode || null),
+        discount: calculatedDiscount,
+        // Tambahkan data gamepass jika metode gamepass
+        ...(method === 'gamepass' && gamepassVerified && {
+          gamepassId: requestBody.gamepassId,
+          gamepassUrl: requestBody.gamepassId ? `https://www.roblox.com/game-pass/${requestBody.gamepassId}` : null
+        })
       };
       
       console.log('Transaction data:', transactionData);
@@ -138,7 +198,7 @@ export async function POST(request: NextRequest) {
       });
       
       console.log('Transaction created successfully:', transaction.id);
-    } catch (transactionError) {
+    } catch (transactionError: any) {
       console.error('Transaction creation error:', transactionError);
       throw new Error(`Failed to create transaction: ${transactionError.message}`);
     }
@@ -161,7 +221,7 @@ export async function POST(request: NextRequest) {
     console.log('=== Transaction API Success ===');
     return NextResponse.json(response);
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('=== Transaction API Error ===');
     console.error('Error details:', error);
     console.error('Error message:', error.message);
@@ -183,6 +243,7 @@ export async function GET() {
     const transactions = await prisma.transaction.findMany({
       include: {
         user: true,
+        robuxStock: true, // Include robuxstock data
       },
       orderBy: {
         createdAt: 'desc',

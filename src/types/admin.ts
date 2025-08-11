@@ -1,20 +1,34 @@
 export interface Transaction {
   id: number;
-  user: {
-    email?: string;
-    robloxUsername: string;
-    whatsappNumber?: string;
-  };
+  userId: string;
   robuxAmount: number;
   totalPrice: number;
+  finalPrice?: number;
+  // Tambahkan relasi robuxstock
+  robuxStockId?: number;
+  robuxStock?: {
+    id: number;
+    amount: number;
+    price: number;
+    isActive: boolean;
+    allowOrders: boolean;
+  };
   method: string;
   status: string;
-  createdAt: string;
   paymentProof?: string;
-  gamepassUrl?: string;
-  couponCode?: string;
-  discount?: number;
-  finalPrice?: number;
+  paymentReference?: string;
+  paymentMethod?: string;
+  couponCode?: string; // Tambahkan ini
+  discount?: number; // Tambahkan ini
+  gamepassUrl?: string; // Tambahkan ini
+  gamepassId?: string; // Tambahkan ini
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    robloxUsername: string;
+    email?: string;
+    whatsappNumber?: string;
+  };
 }
 
 export interface News {

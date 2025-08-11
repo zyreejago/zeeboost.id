@@ -7,6 +7,18 @@ import Footer from '@/components/Footer';
 import SimpleFooter from '@/components/SimpleFooter';
 import ChatCS from '@/components/ChatCS';
 
+// Tambahkan deklarasi tipe untuk window
+declare global {
+  interface Window {
+    gamepassDetails?: {
+      id: string;
+      name: string;
+      price: number;
+      creator: string;
+    };
+  }
+}
+
 interface RobloxUser {
   id: string;
   username: string;
@@ -301,7 +313,96 @@ export default function TopupPage() {
     }
   };
   
+  // Fungsi baru untuk membuat transaksi dengan gamepass ID yang sudah diverifikasi
+  const createTransactionWithGamepass = async (gamepassId: string) => {
+    if (!robloxUser) {
+      showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const transactionData = {
+        robloxUsername: robloxUser.username,
+        robloxId: robloxUser.id,
+        robuxAmount,
+        method: activeMethod,
+        whatsappNumber: whatsappNumber.trim(),
+        email: email.trim(),
+        couponCode: couponCode.trim() || null,
+        discount: getDiscountAmount(),
+        finalPrice: calculatePrice(),
+        gamepassPrice: requiredGamepassPrice,
+        gamepassVerified: true, // LANGSUNG SET TRUE
+        gamepassId: gamepassId.toString() // LANGSUNG GUNAKAN PARAMETER
+      };
+      
+      console.log('=== Sending transaction data with gamepass ===', transactionData);
+      
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transactionData),
+      });
+      
+      const transaction = await response.json();
+      
+      if (response.ok) {
+        // Lanjutkan dengan pembayaran Tripay seperti biasa
+        const paymentData = {
+          transactionId: transaction.id,
+          amount: calculatePrice(),
+          customerName: robloxUser.username,
+          customerEmail: email.trim(),
+          customerPhone: whatsappNumber.trim(),
+          paymentMethod: paymentMethod
+        };
+        
+        const paymentResponse = await fetch('/api/payment/tripay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentData)
+        });
+        
+        const paymentResult = await paymentResponse.json();
+        
+        if (paymentResult.success) {
+          window.open(paymentResult.paymentUrl, '_blank');
+          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+        } else {
+          showNotification('Error', 'Gagal membuat pembayaran!', 'error');
+          return;
+        }
+        
+        // Reset form
+        setUsername('');
+        setRobloxUser(null);
+        setRobuxAmount(100);
+        setWhatsappNumber('');
+        setEmail('');
+        setCouponCode('');
+        setCouponData(null);
+        setGamepassVerified(false);
+        setGamepassStep('create');
+        setShowGamepassModal(false);
+        
+        if (window.gamepassDetails) {
+          delete window.gamepassDetails;
+        }
+      } else {
+        showNotification('Error', 'Gagal membuat transaksi!', 'error');
+      }
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      showNotification('Error', 'Terjadi kesalahan!', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fungsi terpisah untuk membuat transaksi
+  // Di fungsi createTransaction, tambahkan gamepass data
+  // Update fungsi createTransaction untuk mengirim gamepass ID
   const createTransaction = async () => {
     if (!robloxUser) {
       showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
@@ -311,36 +412,48 @@ export default function TopupPage() {
     setIsLoading(true);
     try {
       // Buat transaksi terlebih dahulu
+      const transactionData = {
+        robloxUsername: robloxUser.username,
+        robloxId: robloxUser.id,
+        robuxAmount,
+        method: activeMethod,
+        whatsappNumber: whatsappNumber.trim(),
+        email: email.trim(),
+        couponCode: couponCode.trim() || null,
+        discount: getDiscountAmount(),
+        finalPrice: calculatePrice(),
+        gamepassPrice: requiredGamepassPrice,
+        gamepassVerified: activeMethod === 'gamepass' ? gamepassVerified : false,
+        // PERBAIKAN: Pastikan gamepassId dikirim
+        ...(activeMethod === 'gamepass' && gamepassVerified && window.gamepassDetails && {
+          gamepassId: window.gamepassDetails.id.toString()  // <-- CONVERT TO STRING
+        })
+      };
+      
+      console.log('=== Sending transaction data ===', transactionData);
+      console.log('=== GAMEPASS DEBUG ===');
+      console.log('activeMethod:', activeMethod);
+      console.log('gamepassVerified:', gamepassVerified);
+      console.log('window.gamepassDetails:', window.gamepassDetails);
+      console.log('gamepassId being sent:', window.gamepassDetails?.id);
+      
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          robloxUsername: robloxUser.username,
-          robloxId: robloxUser.id,
-          robuxAmount,
-          method: activeMethod,
-          whatsappNumber: whatsappNumber.trim(),
-          email: email.trim(),
-          couponCode: couponCode.trim() || null,
-          discount: getDiscountAmount(),
-          finalPrice: calculatePrice(),
-          gamepassPrice: requiredGamepassPrice,
-          gamepassVerified: activeMethod === 'gamepass' ? gamepassVerified : false
-        }),
+        body: JSON.stringify(transactionData),
       });
       
       const transaction = await response.json();
       
       if (response.ok) {
         // Setelah transaksi berhasil dibuat, langsung buat pembayaran Tripay
-        // Di dalam fungsi createTransaction
         const paymentData = {
           transactionId: transaction.id,
           amount: calculatePrice(),
           customerName: robloxUser.username,
           customerEmail: email.trim(),
           customerPhone: whatsappNumber.trim(),
-          paymentMethod: paymentMethod // Pastikan ini ada dan menggunakan state yang benar
+          paymentMethod: paymentMethod
         };
         
         console.log('=== Sending to Tripay API ===');
@@ -375,6 +488,11 @@ export default function TopupPage() {
         setGamepassVerified(false);
         setGamepassStep('create');
         setShowGamepassModal(false);
+        
+        // Bersihkan gamepass details
+        if (window.gamepassDetails) {
+          delete window.gamepassDetails;
+        }
       } else {
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
@@ -386,62 +504,164 @@ export default function TopupPage() {
     }
   };
   
+  // Fungsi untuk membuat transaksi dengan gamepass ID
+  // const createTransactionWithGamepass = async (gamepassId: string) => {
+  //   if (!robloxUser) {
+  //     showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
+  //     return;
+  //   }
+    
+  //   setIsLoading(true);
+  //   try {
+  //     // Buat transaksi dengan gamepass ID yang sudah diverifikasi
+  //     const transactionData = {
+  //       robloxUsername: robloxUser.username,
+  //       robloxId: robloxUser.id,
+  //       robuxAmount,
+  //       method: activeMethod,
+  //       whatsappNumber: whatsappNumber.trim(),
+  //       email: email.trim(),
+  //       couponCode: couponCode.trim() || null,
+  //       discount: getDiscountAmount(),
+  //       finalPrice: calculatePrice(),
+  //       gamepassPrice: requiredGamepassPrice,
+  //       gamepassVerified: true, // Langsung set true karena sudah diverifikasi
+  //       gamepassId: gamepassId // Gunakan gamepass ID yang sudah diverifikasi
+  //     };
+      
+  //     console.log('=== Sending transaction data with verified gamepass ===', transactionData);
+      
+  //     const response = await fetch('/api/transactions', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(transactionData),
+  //     });
+      
+  //     const transaction = await response.json();
+      
+  //     if (response.ok) {
+  //       // Setelah transaksi berhasil dibuat, langsung buat pembayaran Tripay
+  //       const paymentData = {
+  //         transactionId: transaction.id,
+  //         amount: calculatePrice(),
+  //         customerName: robloxUser.username,
+  //         customerEmail: email.trim(),
+  //         customerPhone: whatsappNumber.trim(),
+  //         paymentMethod: paymentMethod
+  //       };
+        
+  //       console.log('=== Sending to Tripay API ===');
+  //       console.log('Payment data:', paymentData);
+        
+  //       const paymentResponse = await fetch('/api/payment/tripay', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify(paymentData)
+  //       });
+        
+  //       const paymentResult = await paymentResponse.json();
+  //       console.log('Payment response:', paymentResult);
+        
+  //       if (paymentResult.success) {
+  //         // Redirect ke halaman pembayaran Tripay
+  //         window.open(paymentResult.paymentUrl, '_blank');
+  //         showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+  //       } else {
+  //         showNotification('Error', 'Gagal membuat pembayaran!', 'error');
+  //         return;
+  //       }
+        
+  //       // Reset form
+  //       setUsername('');
+  //       setRobloxUser(null);
+  //       setRobuxAmount(100);
+  //       setWhatsappNumber('');
+  //       setEmail('');
+  //       setCouponCode('');
+  //       setCouponData(null);
+  //       setGamepassVerified(false);
+  //       setGamepassStep('create');
+  //       setShowGamepassModal(false);
+        
+  //       // Bersihkan gamepass details
+  //       if (window.gamepassDetails) {
+  //         delete window.gamepassDetails;
+  //       }
+  //     } else {
+  //       showNotification('Error', 'Gagal membuat transaksi!', 'error');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error creating transaction:', error);
+  //     showNotification('Error', 'Terjadi kesalahan!', 'error');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   // Fungsi verifikasi gamepass di modal yang diperbarui
   const verifyGamepassInModal = async () => {
-    if (!robloxUser) {
-      showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
-      return;
-    }
-    
-    setIsCheckingGamepass(true);
-    try {
-      const response = await fetch('/api/roblox/check-gamepass', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: robloxUser.id,
-          requiredPrice: requiredGamepassPrice
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success && data.hasValidGamepass) {
-        setGamepassVerified(true);
-        setGamepassStep('completed');
-        
-        // Tampilkan konfirmasi dengan detail gamepass
-        const gamepassDetails = data.gamepassDetails;
-        showConfirmation(
-          'Gamepass Terverifikasi!',
-          'Gamepass Anda telah berhasil diverifikasi. Lanjutkan untuk membuat pesanan?',
-          async () => {
-            setShowGamepassModal(false);
-            await createTransaction();
-          },
-          () => {
-            setGamepassVerified(false);
-            setGamepassStep('create');
-          },
-          gamepassDetails,
-          data.robuxAmount,
-          calculatePrice()
-        );
-      } else {
-        showNotification(
-          'Gamepass Tidak Ditemukan',
-          data.message || 'Gamepass belum ditemukan atau harga tidak sesuai. Pastikan Anda sudah membuat gamepass dengan harga yang benar.',
-          'error'
-        );
-      }
-    } catch (error) {
-      console.error('Error checking gamepass:', error);
-      showNotification('Error', 'Gagal memverifikasi gamepass!', 'error');
-    } finally {
-      setIsCheckingGamepass(false);
-    }
-  };
+  if (!robloxUser) {
+    showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
+    return;
+  }
   
+  setIsCheckingGamepass(true);
+  try {
+    const response = await fetch('/api/roblox/check-gamepass', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: robloxUser.id,
+        requiredPrice: requiredGamepassPrice
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (data.success && data.hasValidGamepass) {
+      setGamepassVerified(true);
+      setGamepassStep('completed');
+      
+      // Simpan data gamepass untuk digunakan saat membuat transaksi
+      window.gamepassDetails = data.gamepassDetails;
+      
+      console.log('=== GAMEPASS VERIFIED ===');
+      console.log('GamepassId:', data.gamepassDetails.id);
+      console.log('GamepassVerified set to:', true);
+      
+      // Tampilkan konfirmasi dengan detail gamepass
+      const gamepassDetails = data.gamepassDetails;
+      showConfirmation(
+        'Gamepass Terverifikasi!',
+        'Gamepass Anda telah berhasil diverifikasi. Lanjutkan untuk membuat pesanan?',
+        async () => {
+          setShowGamepassModal(false);
+          // PERBAIKAN: Panggil createTransactionWithGamepass dengan gamepass ID
+          await createTransactionWithGamepass(gamepassDetails.id.toString());
+        },
+        () => {
+          setGamepassVerified(false);
+          setGamepassStep('create');
+          delete window.gamepassDetails;
+        },
+        gamepassDetails,
+        data.robuxAmount,
+        calculatePrice()
+      );
+    } else {
+      showNotification(
+        'Gamepass Tidak Ditemukan',
+        data.message || 'Gamepass belum ditemukan atau harga tidak sesuai. Pastikan Anda sudah membuat gamepass dengan harga yang benar.',
+        'error'
+      );
+    }
+  } catch (error) {
+    console.error('Error checking gamepass:', error);
+    showNotification('Error', 'Gagal memverifikasi gamepass!', 'error');
+  } finally {
+    setIsCheckingGamepass(false);
+  }
+};
   const handleTopup = async () => {
     if (!robloxUser) {
       showNotification('Error', 'Silakan validasi username terlebih dahulu!', 'error');
@@ -814,7 +1034,7 @@ export default function TopupPage() {
                 <button
                   onClick={handleTopup}
                   disabled={!robloxUser || isLoading || !whatsappNumber.trim() || !email.trim() || !canOrder}
-                  className="w-full bg-primary-500 hover:bg-primary-dark text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
+                  className="w-full bg-primary-dark hover:bg-primary-700 text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center space-x-2">

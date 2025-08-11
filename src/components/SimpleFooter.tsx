@@ -9,11 +9,12 @@ export default function SimpleFooter() {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           {/* Logo & Brand */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-dark rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Z</span>
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="w-15 h-15 object-contain"
+              />
             </div>
-            <span className="text-xl font-bold text-gray-800">ZeeBoost</span>
-          </div>
           
           {/* Quick Links */}
           <div className="flex items-center space-x-6 text-sm">

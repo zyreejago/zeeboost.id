@@ -10,6 +10,7 @@ import TransactionList from '@/components/admin/TransactionList';
 import NewsManagement from '@/components/admin/NewsManagement';
 import BannerManagement from '@/components/admin/BannerManagement';
 import DiscountManagement from '@/components/admin/DiscountManagement';
+import ReportManagement from '@/components/admin/ReportManagement';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
             transactions={transactions} 
             news={news} 
             robuxStock={robuxStock}
+            onRefresh={fetchData}
           />
         );
       case 'stock':
@@ -46,7 +48,9 @@ export default function AdminDashboard() {
           />
         );
       case 'transactions':
-        return <TransactionList transactions={transactions} />;
+        return <TransactionList transactions={transactions} onRefresh={fetchData} />;
+      case 'reports':
+        return <ReportManagement transactions={transactions} />;
       case 'news':
         return (
           <NewsManagement
@@ -66,6 +70,7 @@ export default function AdminDashboard() {
             transactions={transactions} 
             news={news} 
             robuxStock={robuxStock}
+            onRefresh={fetchData}
           />
         );
     }

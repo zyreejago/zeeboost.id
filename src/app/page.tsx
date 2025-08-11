@@ -11,11 +11,14 @@ interface Transaction {
   id: number;
   robuxAmount: number;
   totalPrice: number;
+  finalPrice?: number;
+  avatarUrl?: string; // Tambahkan field ini
   method: string;
   status: string;
   createdAt: string;
   user: {
     robloxUsername: string;
+    userId?: number;
   };
 }
 
@@ -63,38 +66,112 @@ export default function Home() {
     fetchDashboardData();
   }, []);
 
-const fetchDashboardData = async () => {
-  try {
-    setIsLoading(true);
-    
-    // Fetch transactions
-    const transactionsResponse = await fetch('/api/transactions');
-    const transactions = await transactionsResponse.json();
-    setRecentTransactions(transactions.slice(0, 5));
-    
-    // Fetch robux inventory from database
-    const robuxResponse = await fetch('/api/robux-stock');
-    const robuxData = await robuxResponse.json();
-    
-    // Calculate total robux from all active variants
-    const totalRobux = robuxData
-      .filter((item: any) => item.isActive)
-      .reduce((total: number, item: any) => total + item.amount, 0);
-    
-    const inventory: RobuxInventory = {
-      totalRobux,
-      totalVariants: robuxData.filter((item: any) => item.isActive).length,
-      lastUpdated: new Date().toISOString(),
-      status: totalRobux > 0 ? 'available' : 'out_of_stock'
-    };
-    setRobuxInventory(inventory);
-    
-  } catch (error) {
-    console.error('Failed to fetch dashboard data:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  // Fungsi untuk fetch avatar - mengikuti flow topup
+  const fetchUserAvatar = async (username: string): Promise<string> => {
+    try {
+      console.log('Fetching avatar for username:', username);
+      
+      // Step 1: Validasi username untuk mendapatkan userId (sama seperti di topup)
+      const validateResponse = await fetch('/api/roblox/validate-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.trim() }),
+      });
+      
+      if (!validateResponse.ok) {
+        throw new Error('Failed to validate username');
+      }
+      
+      const validateData = await validateResponse.json();
+      console.log('Validate response:', validateData);
+      
+      if (validateData.success) {
+        // Step 2: Ambil thumbnail menggunakan userId (sama seperti di topup)
+        const thumbnailResponse = await fetch(
+          `/api/roblox/thumbnail?userId=${validateData.user.id}`
+        );
+        
+        if (thumbnailResponse.ok) {
+          const thumbnailData = await thumbnailResponse.json();
+          console.log('Thumbnail response:', thumbnailData);
+          
+          if (thumbnailData.data && thumbnailData.data.length > 0 && thumbnailData.data[0].imageUrl) {
+            return thumbnailData.data[0].imageUrl;
+          }
+        }
+      }
+      
+      // Fallback ke placeholder jika gagal (sama seperti di topup)
+      return `https://via.placeholder.com/48x48/10b981/ffffff?text=${username.charAt(0).toUpperCase()}`;
+    } catch (error) {
+      console.error('Error fetching user avatar:', error);
+      return `https://via.placeholder.com/48x48/10b981/ffffff?text=${username.charAt(0).toUpperCase()}`;
+    }
+  };
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch transactions
+      const transactionsResponse = await fetch('/api/transactions');
+      if (!transactionsResponse.ok) {
+        throw new Error('Failed to fetch transactions');
+      }
+      
+      const transactions = await transactionsResponse.json();
+      console.log('Transactions data:', transactions);
+      
+      const recentTrans = transactions.slice(0, 5);
+      
+      // Ambil avatar untuk setiap transaksi menggunakan robloxUsername dari database
+      const transactionsWithAvatars = await Promise.all(
+        recentTrans.map(async (transaction: any) => {
+          console.log('Processing transaction:', transaction);
+          
+          // Ambil username dari user.robloxUsername (sesuai struktur database)
+          const username = transaction.user?.robloxUsername;
+          
+          if (username) {
+            console.log('Fetching avatar for:', username);
+            const avatarUrl = await fetchUserAvatar(username);
+            return { ...transaction, avatarUrl };
+          }
+          
+          // Fallback jika tidak ada username
+          return {
+            ...transaction,
+            avatarUrl: `https://via.placeholder.com/48x48/10b981/ffffff?text=U`
+          };
+        })
+      );
+      
+      console.log('Transactions with avatars:', transactionsWithAvatars);
+      setRecentTransactions(transactionsWithAvatars);
+      
+      // Fetch robux inventory from database
+      const robuxResponse = await fetch('/api/robux-stock');
+      const robuxData = await robuxResponse.json();
+      
+      // Calculate total robux from all active variants
+      const totalRobux = robuxData
+        .filter((item: any) => item.isActive)
+        .reduce((total: number, item: any) => total + item.amount, 0);
+      
+      const inventory: RobuxInventory = {
+        totalRobux,
+        totalVariants: robuxData.filter((item: any) => item.isActive).length,
+        lastUpdated: new Date().toISOString(),
+        status: totalRobux > 0 ? 'available' : 'out_of_stock'
+      };
+      setRobuxInventory(inventory);
+      
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -122,16 +199,15 @@ const fetchDashboardData = async () => {
     );
   };
 
-  
-const getStockStatus = (inventory: RobuxInventory) => {
-  if (inventory.totalRobux > 1000) {
-    return { color: 'text-green-600', bg: 'bg-green-100', label: 'Stok Melimpah', icon: 'fas fa-check-circle' };
-  } else if (inventory.totalRobux > 100) {
-    return { color: 'text-yellow-600', bg: 'bg-yellow-100', label: 'Stok Terbatas', icon: 'fas fa-exclamation-triangle' };
-  } else {
-    return { color: 'text-red-600', bg: 'bg-red-100', label: 'Stok Habis', icon: 'fas fa-times-circle' };
-  }
-};
+  const getStockStatus = (inventory: RobuxInventory) => {
+    if (inventory.totalRobux > 1000) {
+      return { color: 'text-green-600', bg: 'bg-green-100', label: 'Stok Melimpah', icon: 'fas fa-check-circle' };
+    } else if (inventory.totalRobux > 100) {
+      return { color: 'text-yellow-600', bg: 'bg-yellow-100', label: 'Stok Terbatas', icon: 'fas fa-exclamation-triangle' };
+    } else {
+      return { color: 'text-red-600', bg: 'bg-red-100', label: 'Stok Habis', icon: 'fas fa-times-circle' };
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
@@ -211,9 +287,9 @@ const getStockStatus = (inventory: RobuxInventory) => {
                             fillRule="evenodd" 
                             clipRule="evenodd" 
                             d="M23.9451 5.63679C25.7431 6.66771 26.8519 8.57401 26.8519 10.6358V19.3631C26.8519 21.426 25.7431 23.3312 23.9451 24.3621L16.3315 28.7268C14.5336 29.7577 12.3172 29.7577 10.5192 28.7268L2.90559 24.3621C1.10764 23.3312 0 21.426 0 19.3631V10.6358C0 8.57401 1.10764 6.66771 2.90559 5.63679L10.5192 1.27319C12.3172 0.242272 14.5336 0.242272 16.3315 1.27319L23.9451 5.63679ZM11.5385 3.25392L4.124 7.50421C2.95594 8.17409 2.23765 9.41051 2.23765 10.7503V19.2497C2.23765 20.5884 2.95594 21.8259 4.124 22.4958L11.5385 26.745C12.7065 27.4148 14.1442 27.4148 15.3123 26.745L22.7267 22.4958C23.8948 21.8259 24.6142 20.5884 24.6142 19.2497V10.7503C24.6142 9.41051 23.8948 8.17409 22.7267 7.50421L15.3123 3.25392C14.1442 2.58405 12.7065 2.58405 11.5385 3.25392ZM14.9755 5.62902L20.8258 8.98171C21.7847 9.5316 22.3765 10.5481 22.3765 11.649V18.3555C22.3765 19.4553 21.7847 20.4717 20.8258 21.0216L14.9755 24.3754C14.0167 24.9253 12.8341 24.9253 11.8752 24.3754L6.02488 21.0216C5.06605 20.4717 4.47531 19.4553 4.47531 18.3555V11.649C4.47531 10.5481 5.06605 9.5316 6.02488 8.98171L11.8752 5.62902C12.8341 5.07912 14.0167 5.07912 14.9755 5.62902ZM10.0694 18.3344H16.7824V11.669H10.0694V18.3344Z" 
-                            fill="currentColor"
-                          />
-                        </g>
+                            fill="currentColor" 
+                          /> 
+                        </g> 
                       </svg>
                     </div>
                     
@@ -298,9 +374,6 @@ const getStockStatus = (inventory: RobuxInventory) => {
                         <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                          Tanggal
-                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -308,23 +381,50 @@ const getStockStatus = (inventory: RobuxInventory) => {
                         <tr key={transaction.id} className="hover:bg-primary-50/50 transition-colors duration-200">
                           <td className="px-8 py-6 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                {transaction.user.robloxUsername.charAt(0).toUpperCase()}
+                              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-200 shadow-sm relative">
+                                {transaction.avatarUrl && !transaction.avatarUrl.includes('placeholder') ? (
+                                  <img 
+                                    src={transaction.avatarUrl} 
+                                    alt={`${transaction.user.robloxUsername} avatar`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                      if (fallback) fallback.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : null}
+                                <div 
+                                  className="w-full h-full bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center text-white font-semibold text-sm absolute inset-0" 
+                                  style={{display: transaction.avatarUrl && !transaction.avatarUrl.includes('placeholder') ? 'none' : 'flex'}}
+                                >
+                                  {transaction.user.robloxUsername.charAt(0).toUpperCase()}
+                                </div>
                               </div>
                               <div className="ml-4">
                                 <div className="text-sm font-semibold text-gray-900">
-                                  {transaction.user.robloxUsername}
+                                  {censorUsername(transaction.user.robloxUsername)}
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                  ID: #{transaction.id}
-                                </div>
+                                {/* <div className="text-sm text-gray-500">
+                                  {formatDate(transaction.createdAt)}
+                                </div> */}
                               </div>
                             </div>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
-                                <i className="fas fa-coins text-yellow-600"></i>
+                              <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center mr-3 shadow-lg">
+                                <svg width="20" height="22" viewBox="0 0 27 30" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+                                  <g id="common/robux">
+                                    <path 
+                                      id="coin" 
+                                      fillRule="evenodd" 
+                                      clipRule="evenodd" 
+                                      d="M23.9451 5.63679C25.7431 6.66771 26.8519 8.57401 26.8519 10.6358V19.3631C26.8519 21.426 25.7431 23.3312 23.9451 24.3621L16.3315 28.7268C14.5336 29.7577 12.3172 29.7577 10.5192 28.7268L2.90559 24.3621C1.10764 23.3312 0 21.426 0 19.3631V10.6358C0 8.57401 1.10764 6.66771 2.90559 5.63679L10.5192 1.27319C12.3172 0.242272 14.5336 0.242272 16.3315 1.27319L23.9451 5.63679ZM11.5385 3.25392L4.124 7.50421C2.95594 8.17409 2.23765 9.41051 2.23765 10.7503V19.2497C2.23765 20.5884 2.95594 21.8259 4.124 22.4958L11.5385 26.745C12.7065 27.4148 14.1442 27.4148 15.3123 26.745L22.7267 22.4958C23.8948 21.8259 24.6142 20.5884 24.6142 19.2497V10.7503C24.6142 9.41051 23.8948 8.17409 22.7267 7.50421L15.3123 3.25392C14.1442 2.58405 12.7065 2.58405 11.5385 3.25392ZM14.9755 5.62902L20.8258 8.98171C21.7847 9.5316 22.3765 10.5481 22.3765 11.649V18.3555C22.3765 19.4553 21.7847 20.4717 20.8258 21.0216L14.9755 24.3754C14.0167 24.9253 12.8341 24.9253 11.8752 24.3754L6.02488 21.0216C5.06605 20.4717 4.47531 19.4553 4.47531 18.3555V11.649C4.47531 10.5481 5.06605 9.5316 6.02488 8.98171L11.8752 5.62902C12.8341 5.07912 14.0167 5.07912 14.9755 5.62902ZM10.0694 18.3344H16.7824V11.669H10.0694V18.3344Z" 
+                                      fill="currentColor" 
+                                    /> 
+                                  </g> 
+                                </svg>
                               </div>
                               <div>
                                 <div className="text-sm font-semibold text-gray-900">
@@ -338,14 +438,11 @@ const getStockStatus = (inventory: RobuxInventory) => {
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
                             <div className="text-sm font-semibold text-gray-900">
-                              Rp {transaction.totalPrice.toLocaleString('id-ID')}
+              Rp {(transaction.finalPrice || transaction.totalPrice).toLocaleString('id-ID')}
                             </div>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
                             {getStatusBadge(transaction.status)}
-                          </td>
-                          <td className="px-8 py-6 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(transaction.createdAt)}
                           </td>
                         </tr>
                       ))}
@@ -355,17 +452,16 @@ const getStockStatus = (inventory: RobuxInventory) => {
               </div>
             ) : (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 text-center border border-primary-100">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <i className="fas fa-receipt text-primary text-3xl"></i>
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-receipt text-gray-400 text-2xl"></i>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Belum Ada Transaksi</h3>
-                <p className="text-gray-500 mb-6 text-lg">Mulai topup Robux pertama Anda sekarang dan bergabung dengan ribuan gamer lainnya!</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Belum Ada Transaksi</h3>
+                <p className="text-gray-500 mb-6">Belum ada transaksi yang tercatat dalam sistem</p>
                 <Link 
                   href="/topup" 
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-full font-semibold hover:from-primary-dark hover:to-primary-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-full font-semibold hover:from-primary-dark hover:to-primary-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
-                  Topup Sekarang
-                  <i className="fas fa-arrow-right"></i>
+                  Mulai Topup Robux
                 </Link>
               </div>
             )}
@@ -375,44 +471,29 @@ const getStockStatus = (inventory: RobuxInventory) => {
           <section className="mb-20">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">
-                Frequently Asked Questions
+                Pertanyaan yang Sering Ditanyakan
               </h2>
-              <p className="text-gray-600 text-lg">CS AI 24 jam siap membantu Anda seputar Roblox, Robux, dan website ini</p>
+              <p className="text-gray-600 text-lg">Temukan jawaban untuk pertanyaan umum seputar ZeeBoost</p>
             </div>
             
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-primary-100 overflow-hidden">
+              <div className="space-y-4">
                 {faqData.map((faq, index) => (
-                  <div key={index} className="border-b border-gray-100 last:border-b-0">
+                  <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-primary-100 overflow-hidden">
                     <button
+                      className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-primary-50/50 transition-colors duration-200"
                       onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                      className="w-full px-8 py-6 text-left hover:bg-primary-50/50 transition-colors duration-200 flex items-center justify-between"
                     >
-                      <h3 className="text-lg font-semibold text-gray-800 pr-4">
-                        {faq.question}
-                      </h3>
-                      <div className={`transform transition-transform duration-200 ${
-                        openFaq === index ? 'rotate-180' : ''
-                      }`}>
-                        <i className="fas fa-chevron-down text-primary"></i>
-                      </div>
+                      <span className="font-semibold text-gray-900">{faq.question}</span>
+                      <i className={`fas fa-chevron-down transition-transform duration-200 ${openFaq === index ? 'rotate-180' : ''}`}></i>
                     </button>
                     {openFaq === index && (
-                      <div className="px-8 pb-6">
-                        <p className="text-gray-600 leading-relaxed">
-                          {faq.answer}
-                        </p>
+                      <div className="px-6 pb-4">
+                        <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
                       </div>
                     )}
                   </div>
                 ))}
-              </div>
-              
-              <div className="text-center mt-8">
-                <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-full font-semibold shadow-lg">
-                  <i className="fas fa-robot mr-2"></i>
-                  AI Customer Service 24/7 Tersedia
-                </div>
               </div>
             </div>
           </section>
@@ -420,9 +501,21 @@ const getStockStatus = (inventory: RobuxInventory) => {
       </main>
       
       <Footer />
-      
-      {/* Chat CS Component */}
       <ChatCS />
     </div>
   );
 }
+
+// Fungsi untuk menyensor username dengan menampilkan huruf pertama dan terakhir saja. Berikut adalah perubahan yang diperlukan:
+const censorUsername = (username: string): string => {
+  if (!username || username.length <= 2) {
+    return username;
+  }
+  
+  const firstChar = username.charAt(0);
+  const lastChar = username.charAt(username.length - 1);
+  const middleLength = username.length - 2;
+  const stars = '*'.repeat(middleLength);
+  
+  return `${firstChar}${stars}${lastChar}`;
+};

@@ -3,7 +3,16 @@ import { NextRequest } from 'next/server';
 
 export async function verifyAdminToken(request: NextRequest) {
   try {
-    const token = request.cookies.get('admin-token')?.value;
+    // Coba ambil token dari cookie dulu
+    let token = request.cookies.get('admin-token')?.value;
+    
+    // Jika tidak ada di cookie, coba dari Authorization header
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
     
     if (!token) {
       return { success: false, error: 'No token provided' };

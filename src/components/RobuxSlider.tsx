@@ -52,7 +52,7 @@ export default function RobuxSlider({
               onClick={() => onChange(amount)}
               className={`p-3 rounded-lg border-2 transition-all font-medium ${
                 localValue === amount
-                  ? 'border-primary bg-primary text-white'
+                  ? 'border-primary bg-primary-dark text-white'
                   : 'border-border hover:border-primary-300 bg-background'
               }`}
             >
@@ -104,8 +104,8 @@ export default function RobuxSlider({
       <style jsx>{`
         .slider {
           background: linear-gradient(to right, 
-            var(--primary) 0%, 
-            var(--primary) ${((localValue - min) / (max - min)) * 100}%, 
+            var(--primary-dark) 0%, 
+            var(--primary-dark) ${((localValue - min) / (max - min)) * 100}%, 
             #e5e7eb ${((localValue - min) / (max - min)) * 100}%, 
             #e5e7eb 100%);
         }
@@ -115,7 +115,7 @@ export default function RobuxSlider({
           height: 24px;
           width: 24px;
           border-radius: 50%;
-          background: var(--primary);
+          background: var(--primary-dark);
           cursor: pointer;
           box-shadow: 0 4px 8px rgba(0,0,0,0.2);
           border: 3px solid white;

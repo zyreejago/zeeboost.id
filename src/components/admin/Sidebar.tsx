@@ -24,6 +24,7 @@ export default function Sidebar({
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt' },
     { id: 'transactions', name: 'Transaksi', icon: 'fas fa-credit-card' },
+    { id: 'reports', name: 'Laporan', icon: 'fas fa-chart-bar' },
     { id: 'stock', name: 'Stock Robux', icon: 'fas fa-coins' },
     { id: 'banners', name: 'Banner', icon: 'fas fa-image' },
     { id: 'news', name: 'News', icon: 'fas fa-newspaper' },

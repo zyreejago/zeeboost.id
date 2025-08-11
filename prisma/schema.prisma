@@ -18,6 +18,7 @@ model User {
   email     String?  @unique
   robloxUsername String @unique  // Tambahkan @unique
   robloxId  String?
+  whatsappNumber String?  // Tambahkan field ini
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
@@ -30,11 +31,20 @@ model Transaction {
   user        User     @relation(fields: [userId], references: [id])
   robuxAmount Int
   totalPrice  Int      // dalam rupiah
+  // Tambahkan relasi ke RobuxStock
+  robuxStockId Int?
+  robuxStock   RobuxStock? @relation(fields: [robuxStockId], references: [id])
   method      String   // "gamepass" atau "login"
   status      String   @default("pending") // "pending", "processing", "completed", "failed"
   paymentProof String?
   paymentReference String? // Reference dari Tripay
   paymentMethod String?   // Metode pembayaran yang dipilih (QRIS, dll)
+  gamepassUrl String?     // URL gamepass untuk metode gamepass
+  gamepassId  String?     // ID gamepass untuk referensi
+  // Tambahkan field baru untuk kupon dan diskon
+  couponCode  String?     // Kode kupon yang digunakan
+  discount    Int?        // Nilai diskon yang diterapkan
+  finalPrice  Int?        // Harga final setelah diskon
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -89,6 +99,8 @@ model RobuxStock {
   isActive    Boolean  @default(true)
   allowOrders Boolean  @default(true) // mengatur apakah user bisa order
   updatedAt   DateTime @updatedAt
+  // Tambahkan relasi balik
+  transactions Transaction[]
 }
 
 model Discount {

@@ -16,14 +16,21 @@ import {
   LineChart,
   Line
 } from 'recharts';
+import TransactionList from './TransactionList';
 
 interface DashboardProps {
   transactions: Transaction[];
   news: News[];
   robuxStock?: RobuxStock[];
+  onRefresh?: () => void; // Tambahkan onRefresh sebagai optional
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ transactions, news, robuxStock = [] }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ 
+  transactions, 
+  news, 
+  robuxStock = [], 
+  onRefresh 
+}) => {
   // Hitung statistik
   const stats = useMemo(() => {
     const totalTransactions = transactions.length;
@@ -359,6 +366,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions, news, robuxS
           </div>
         </div>
       </div>
+      {/* Transaction Management - hanya tampilkan jika onRefresh tersedia */}
+      {onRefresh && (
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Manajemen Transaksi</h2>
+          <TransactionList transactions={transactions} onRefresh={onRefresh} />
+        </div>
+      )}
     </div>
   );
 };
