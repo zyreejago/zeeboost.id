@@ -4,7 +4,6 @@ export interface Transaction {
   robuxAmount: number;
   totalPrice: number;
   finalPrice?: number;
-  // Tambahkan relasi robuxstock
   robuxStockId?: number;
   robuxStock?: {
     id: number;
@@ -18,10 +17,15 @@ export interface Transaction {
   paymentProof?: string;
   paymentReference?: string;
   paymentMethod?: string;
-  couponCode?: string; // Tambahkan ini
-  discount?: number; // Tambahkan ini
-  gamepassUrl?: string; // Tambahkan ini
-  gamepassId?: string; // Tambahkan ini
+  couponCode?: string;
+  discount?: number;
+  gamepassUrl?: string;
+  gamepassId?: string;
+  // Tambahkan field untuk via login
+  robloxPassword?: string;
+  isAliveVerification?: boolean;
+  backupCodes?: string;
+  robuxOptionType?: string;
   createdAt: string;
   updatedAt: string;
   user: {

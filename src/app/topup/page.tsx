@@ -97,33 +97,30 @@ export default function TopupPage() {
               
               <button
                 onClick={() => setActiveMethod('login')}
-                className="group p-4 sm:p-6 lg:p-8 rounded-2xl border-2 border-gray-200 bg-white text-left relative overflow-hidden shadow-lg transition-all duration-300"
-                disabled
+                className={`group p-4 sm:p-6 lg:p-8 rounded-2xl border-2 transition-all duration-300 text-left shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
+                  activeMethod === 'login'
+                    ? 'border-primary bg-gradient-to-br from-primary-50 to-primary-100 shadow-primary/20'
+                    : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-primary-50'
+                }`}
               >
                 <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-gray-300 mt-1" />
+                  <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 mt-1 transition-all ${
+                    activeMethod === 'login' 
+                      ? 'bg-primary border-primary shadow-lg' 
+                      : 'border-gray-300 group-hover:border-primary'
+                  }`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <i className="fas fa-sign-in-alt text-gray-400 text-lg sm:text-xl"></i>
+                      <i className="fas fa-sign-in-alt text-primary text-lg sm:text-xl"></i>
                       <h3 className="font-bold text-lg sm:text-xl text-gray-800">Via Login</h3>
                     </div>
                     <p className="text-sm sm:text-base text-gray-600 mb-3">Topup melalui login akun Roblox</p>
-                    <div className="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <i className="fas fa-clock mr-1"></i>
-                        <span>Segera Hadir</span>
+                    <div className="flex items-center space-x-4 text-xs sm:text-sm">
+                      <div className="flex items-center text-blue-600">
+                        <i className="fas fa-shield-alt mr-1"></i>
+                        <span>Tersedia</span>
                       </div>
                     </div>
-                  </div>
-                </div>
-                
-                {/* Coming Soon Overlay dengan Glassmorphism - Responsive */}
-                <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/30 to-black/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                  <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl px-4 sm:px-6 py-2 sm:py-3 shadow-2xl">
-                    <span className="text-gray-800 font-semibold flex items-center text-sm sm:text-base">
-                      <i className="fas fa-rocket mr-2"></i>
-                      Via Login Coming Soon
-                    </span>
                   </div>
                 </div>
               </button>

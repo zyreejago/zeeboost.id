@@ -9,6 +9,7 @@ export default function Header({ activeTab }: HeaderProps) {
     { id: 'dashboard', name: 'Dashboard' },
     { id: 'transactions', name: 'Transaksi' },
     { id: 'stock', name: 'Stock Robux' },
+    { id: 'robux-themes', name: 'Robux Vilog' },
     { id: 'banners', name: 'Banner' },
     { id: 'news', name: 'News' },
     { id: 'discounts', name: 'Discount' },

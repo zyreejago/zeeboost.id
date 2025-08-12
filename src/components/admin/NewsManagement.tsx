@@ -121,15 +121,20 @@ export default function NewsManagement({
         }),
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
         setNewsForm({ title: '', content: '', excerpt: '', imageUrl: '', isPublished: false });
         setSelectedImage(null);
         setImagePreview('');
         onRefresh();
         alert('News berhasil ditambahkan!');
+      } else {
+        throw new Error(data.error || 'Gagal menambahkan news');
       }
     } catch (error) {
-      alert('Gagal menambahkan news!');
+      console.error('Error adding news:', error);
+      alert(`Gagal menambahkan news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -176,6 +181,8 @@ export default function NewsManagement({
         }),
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
         setEditingNews(null);
         setEditForm({ title: '', content: '', excerpt: '', imageUrl: '', isPublished: false });
@@ -183,9 +190,12 @@ export default function NewsManagement({
         setEditImagePreview('');
         onRefresh();
         alert('News berhasil diperbarui!');
+      } else {
+        throw new Error(data.error || 'Gagal memperbarui news');
       }
     } catch (error) {
-      alert('Gagal memperbarui news!');
+      console.error('Error updating news:', error);
+      alert(`Gagal memperbarui news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -201,18 +211,29 @@ export default function NewsManagement({
 
   const deleteNews = async (id: number) => {
     if (!confirm('Yakin ingin menghapus news ini?')) return;
-
+  
     try {
       const response = await fetch(`/api/admin/news/${id}`, {
         method: 'DELETE',
       });
-
+  
+      const data = await response.json();
+      
       if (response.ok) {
-        onRefresh();
+        if (typeof onRefresh === 'function') {
+          onRefresh();
+        } else {
+          console.error('onRefresh is not a function');
+          // Fallback: Reload halaman jika onRefresh tidak tersedia
+          window.location.reload();
+        }
         alert('News berhasil dihapus!');
+      } else {
+        throw new Error(data.error || 'Gagal menghapus news');
       }
     } catch (error) {
-      alert('Gagal menghapus news!');
+      console.error('Error deleting news:', error);
+      alert(`Gagal menghapus news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

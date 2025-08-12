@@ -88,15 +88,15 @@ export default function Banner() {
   
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6">
-      <div className="relative h-[60vh] overflow-hidden rounded-2xl shadow-lg bg-gray-100">
+      <div className="relative overflow-hidden rounded-xl shadow-lg bg-gray-100">
         {banner.imageUrl ? (
           <img
             src={banner.imageUrl}
             alt={banner.title || 'Banner'}
-            className="w-full h-full object-fill"
+            className="w-full h-auto aspect-[1920/648] rounded-xl object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary via-primary-dark to-primary-600" />
+          <div className="w-full h-auto aspect-[1920/648] rounded-xl bg-gradient-to-br from-primary via-primary-dark to-primary-600" />
         )}
         
         {/* Banner indicators */}

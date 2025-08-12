@@ -26,6 +26,7 @@ export default function Sidebar({
     { id: 'transactions', name: 'Transaksi', icon: 'fas fa-credit-card' },
     { id: 'reports', name: 'Laporan', icon: 'fas fa-chart-bar' },
     { id: 'stock', name: 'Stock Robux', icon: 'fas fa-coins' },
+    { id: 'robux-themes', name: 'Robux Vilog', icon: 'fas fa-gamepad' },
     { id: 'banners', name: 'Banner', icon: 'fas fa-image' },
     { id: 'news', name: 'News', icon: 'fas fa-newspaper' },
     { id: 'discounts', name: 'Discount', icon: 'fas fa-tags' },

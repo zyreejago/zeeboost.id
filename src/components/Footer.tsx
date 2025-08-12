@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+    <footer className="relative bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-10 w-32 h-32 bg-primary rounded-full blur-3xl"></div>
@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company Info */}
           <div className="lg:col-span-2">
-                        <div className="flex items-center space-x-3 mb-6">
+            <div className="flex items-center space-x-3 mb-6">
               <img 
                 src="/logo.png" 
                 alt="Logo" 
@@ -33,17 +33,15 @@ export default function Footer() {
             <div className="mb-6">
               <h4 className="text-lg font-semibold mb-4">Ikuti Kami</h4>
               <div className="flex space-x-4">
-                <a href="#" className="group w-12 h-12 bg-gray-800 hover:bg-primary rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
-                  <i className="fab fa-facebook-f text-gray-300 group-hover:text-white transition-colors"></i>
-                </a>
-                <a href="#" className="group w-12 h-12 bg-gray-800 hover:bg-primary rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
-                  <i className="fab fa-instagram text-gray-300 group-hover:text-white transition-colors"></i>
-                </a>
-                <a href="#" className="group w-12 h-12 bg-gray-800 hover:bg-primary rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
-                  <i className="fab fa-twitter text-gray-300 group-hover:text-white transition-colors"></i>
-                </a>
-                <a href="#" className="group w-12 h-12 bg-gray-800 hover:bg-primary rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg">
-                  <i className="fab fa-discord text-gray-300 group-hover:text-white transition-colors"></i>
+                <a 
+                  href="https://instagram.com/zeeboost.com" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group w-12 h-12 bg-gray-800 hover:bg-primary rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg"
+                >
+                  <svg className="w-6 h-6 text-gray-300 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
                 </a>
               </div>
             </div>
@@ -56,7 +54,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center text-gray-300">
                 <i className="fas fa-phone w-5 h-5 mr-3 text-primary"></i>
-                <span>+62 812-3456-7890</span>
+                <span>+6287740517441</span>
               </div>
               <div className="flex items-center text-gray-300">
                 <i className="fas fa-clock w-5 h-5 mr-3 text-primary"></i>
@@ -84,15 +82,15 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/cara-topup" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
-                  <i className="fas fa-question-circle w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
-                  Cara Topup
+                <Link href="/news" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
+                  <i className="fas fa-newspaper w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
+                  Berita
                 </Link>
               </li>
               <li>
-                <Link href="/kontak" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
-                  <i className="fas fa-envelope w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
-                  Kontak Kami
+                <Link href="/check-order" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
+                  <i className="fas fa-search w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
+                  Cek Pesanan
                 </Link>
               </li>
             </ul>
@@ -111,21 +109,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/syarat-ketentuan" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
+                <Link href="/terms" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
                   <i className="fas fa-file-contract w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
                   Syarat & Ketentuan
-                </Link>
-              </li>
-              <li>
-                <Link href="/kebijakan-privasi" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
-                  <i className="fas fa-shield-alt w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
-                  Kebijakan Privasi
-                </Link>
-              </li>
-              <li>
-                <Link href="/refund-policy" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
-                  <i className="fas fa-undo w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
-                  Kebijakan Refund
                 </Link>
               </li>
               <li>
@@ -157,7 +143,7 @@ export default function Footer() {
                 <span className="text-sm">SSL Secured</span>
               </div>
               <div className="flex items-center text-gray-300">
-                <i className="fas fa-lock text-blue-400 mr-2"></i>
+                <i className="fas fa-lock text-primary mr-2"></i>
                 <span className="text-sm">Data Protected</span>
               </div>
               <div className="flex items-center text-gray-300">

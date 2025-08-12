@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAdminData } from '@/hooks/useAdminData';
+import AdminAuth from '@/components/admin/AdminAuth';
 import Sidebar from '@/components/admin/Sidebar';
 import Header from '@/components/admin/Header';
 import { Dashboard } from '@/components/admin/Dashboard';
@@ -11,6 +12,7 @@ import NewsManagement from '@/components/admin/NewsManagement';
 import BannerManagement from '@/components/admin/BannerManagement';
 import DiscountManagement from '@/components/admin/DiscountManagement';
 import ReportManagement from '@/components/admin/ReportManagement';
+import RobuxThemesManagement from '@/components/admin/RobuxThemesManagement';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -32,66 +34,93 @@ export default function AdminDashboard() {
       case 'dashboard':
         return (
           <Dashboard 
-            transactions={transactions} 
-            news={news} 
+            transactions={transactions}
+            news={news}
+            banners={banners}
             robuxStock={robuxStock}
+            discounts={discounts}
+          />
+        );
+      case 'transactions':
+        return (
+          <TransactionList 
+            transactions={transactions}
             onRefresh={fetchData}
           />
         );
       case 'stock':
         return (
-          <StockManagement
+          <StockManagement 
             robuxStock={robuxStock}
-            onRefresh={fetchData}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
+            fetchData={fetchData}
           />
         );
-      case 'transactions':
-        return <TransactionList transactions={transactions} onRefresh={fetchData} />;
-      case 'reports':
-        return <ReportManagement transactions={transactions} />;
+      case 'robux-themes':
+        return <RobuxThemesManagement />;
+      case 'banners':
+        return (
+          <BannerManagement 
+            banners={banners}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            fetchData={fetchData}
+          />
+        );
       case 'news':
         return (
-          <NewsManagement
+          <NewsManagement 
             news={news}
-            onRefresh={fetchData}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
+            fetchData={fetchData}
           />
         );
-      case 'banners':
-        return <BannerManagement banners={banners} onRefresh={fetchData} />;
       case 'discounts':
-        return <DiscountManagement discounts={discounts} onRefresh={fetchData} />;
+        return (
+          <DiscountManagement 
+            discounts={discounts}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            fetchData={fetchData}
+          />
+        );
+      case 'reports':
+        return <ReportManagement transactions={transactions} />;
       default:
         return (
           <Dashboard 
-            transactions={transactions} 
-            news={news} 
+            transactions={transactions}
+            news={news}
+            banners={banners}
             robuxStock={robuxStock}
-            onRefresh={fetchData}
+            discounts={discounts}
           />
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <Header activeTab={activeTab} />
-        
-        <main className="flex-1 p-6 overflow-auto">
-          {renderContent()}
-        </main>
+    <AdminAuth>
+      <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-50 flex">
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+          />
+          
+          <div className="flex-1 flex flex-col">
+            <Header activeTab={activeTab} />
+            
+            <main className="flex-1 p-6 overflow-auto">
+              {renderContent()}
+            </main>
+          </div>
+        </div>
       </div>
-    </div>
+    </AdminAuth>
   );
 }

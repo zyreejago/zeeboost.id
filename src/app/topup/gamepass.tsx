@@ -63,6 +63,9 @@ export default function GamepassTopup() {
   // Tambahkan state baru untuk modal konfirmasi dan notifikasi
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+
+  // Tambahkan state baru untuk modal delivery information
+const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [modalData, setModalData] = useState<{
     title: string;
     message: string;
@@ -560,25 +563,26 @@ export default function GamepassTopup() {
     setIsCheckingGamepass(false);
   }
 };
-  const handleTopup = async () => {
-    if (!robloxUser) {
-      showNotification('Error', 'Silakan validasi username terlebih dahulu!', 'error');
-      return;
-    }
-    
-    if (!whatsappNumber.trim()) {
-      showNotification('Error', 'Silakan masukkan nomor WhatsApp!', 'error');
-      return;
-    }
-    
-    if (!email.trim()) {
-      showNotification('Error', 'Silakan masukkan email!', 'error');
-      return;
-    }
-    
-    // Tampilkan modal verifikasi gamepass
-    setShowGamepassModal(true);
-  };
+  // Modifikasi handleTopup function
+const handleTopup = async () => {
+  if (!robloxUser) {
+    showNotification('Error', 'Silakan validasi username terlebih dahulu!', 'error');
+    return;
+  }
+  
+  if (!whatsappNumber.trim()) {
+    showNotification('Error', 'Silakan masukkan nomor WhatsApp!', 'error');
+    return;
+  }
+  
+  if (!email.trim()) {
+    showNotification('Error', 'Silakan masukkan email!', 'error');
+    return;
+  }
+  
+  // Tampilkan modal informasi delivery terlebih dahulu
+  setShowDeliveryModal(true);
+};
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -821,7 +825,7 @@ export default function GamepassTopup() {
         </button>
       </div>
       
-      {/* Modal Verifikasi Gamepass */}
+        {/* Modal Gamepass */}
       {showGamepassModal && (
         <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl">
@@ -847,6 +851,17 @@ export default function GamepassTopup() {
                   <li>3. Set harga: {requiredGamepassPrice.toLocaleString('id-ID')} Robux</li>
                   <li>4. Klik "Verifikasi" di bawah</li>
                 </ol>
+                
+                {/* Tambahkan link artikel cara membuat gamepass */}
+                <p className="text-sm text-center mt-3">
+                  <a 
+                    href="/gamepass-guide" 
+                    target="_blank" 
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Lihat tutorial zeeboost untuk cara membuat gamepass!
+                  </a>
+                </p>
               </div>
               
               <div className="flex space-x-3">
@@ -922,6 +937,43 @@ export default function GamepassTopup() {
           </div>
         </div>
       )}
+      {/* Modal Delivery Information */}
+{showDeliveryModal && (
+  <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold mb-4">Penting: Estimasi Pengiriman Robux</h3>
+        
+        <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
+          <p className="text-sm text-gray-600 mb-2">
+            Harap diperhatikan bahwa pengiriman Robux membutuhkan waktu <strong>minimal 5 hari</strong> setelah pembayaran berhasil.
+          </p>
+          <p className="text-sm font-medium text-yellow-700">
+            Dengan melanjutkan, Anda menyetujui estimasi waktu pengiriman ini.
+          </p>
+        </div>
+        
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setShowDeliveryModal(false)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => {
+              setShowDeliveryModal(false);
+              setShowGamepassModal(true);
+            }}
+            className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            Saya Setuju
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       
       {/* Modal Notifikasi */}
       {showNotificationModal && (

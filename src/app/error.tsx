@@ -89,7 +89,7 @@ export default function Error({ error, reset }: ErrorProps) {
                 support@zeeboost.com
               </a>
               <a
-                href="https://wa.me/6281234567890"
+                href="https://wa.me/6287740517441"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"

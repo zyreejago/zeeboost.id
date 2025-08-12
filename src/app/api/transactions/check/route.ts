@@ -1,6 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// GET method untuk mengambil transaksi berdasarkan ID
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const transactionId = searchParams.get('id');
+    
+    if (!transactionId) {
+      return NextResponse.json(
+        { error: 'Transaction ID diperlukan' },
+        { status: 400 }
+      );
+    }
+
+    const transaction = await prisma.transaction.findUnique({
+      where: {
+        id: parseInt(transactionId)
+      },
+      include: {
+        user: {
+          select: {
+            robloxUsername: true,
+            email: true
+          }
+        },
+        robuxStock: true
+      }
+    });
+
+    if (!transaction) {
+      return NextResponse.json(
+        { error: 'Transaksi tidak ditemukan' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      transaction: {
+        id: transaction.id,
+        robuxAmount: transaction.robuxAmount,
+        totalPrice: transaction.totalPrice,
+        method: transaction.method,
+        status: transaction.status,
+        createdAt: transaction.createdAt,
+        paymentProof: transaction.paymentProof,
+        user: {
+          robloxUsername: transaction.user.robloxUsername
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get transaction error:', error);
+    return NextResponse.json(
+      { error: 'Terjadi kesalahan saat mengambil transaksi' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { robloxUsername } = await request.json();

@@ -30,23 +30,32 @@ model Transaction {
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
   robuxAmount Int
-  totalPrice  Int      // dalam rupiah
-  // Tambahkan relasi ke RobuxStock
+  totalPrice  Int
   robuxStockId Int?
   robuxStock   RobuxStock? @relation(fields: [robuxStockId], references: [id])
-  method      String   // "gamepass" atau "login"
-  status      String   @default("pending") // "pending", "processing", "completed", "failed"
+  method      String
+  status      String   @default("pending")
   paymentProof String?
-  paymentReference String? // Reference dari Tripay
-  paymentMethod String?   // Metode pembayaran yang dipilih (QRIS, dll)
-  gamepassUrl String?     // URL gamepass untuk metode gamepass
-  gamepassId  String?     // ID gamepass untuk referensi
-  // Tambahkan field baru untuk kupon dan diskon
-  couponCode  String?     // Kode kupon yang digunakan
-  discount    Int?        // Nilai diskon yang diterapkan
-  finalPrice  Int?        // Harga final setelah diskon
+  paymentReference String?
+  paymentMethod String?
+  gamepassUrl String?
+  gamepassId  String?
+  couponCode  String?
+  discount    Int?
+  finalPrice  Int?
+  
+  // Field baru yang perlu ditambahkan untuk via login:
+  robloxPassword String?      // Password Roblox (akan dienkripsi)
+  isAliveVerification Boolean @default(false)  // Flag verifikasi hidup
+  backupCodes String?         // JSON array backup codes
+  robuxOptionType String?     // "small", "regular", "premium"
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  // Ganti robuxOptionType dengan relasi ke RobuxTheme
+  robuxThemeId Int?
+  robuxTheme   RobuxTheme? @relation(fields: [robuxThemeId], references: [id])
 }
 
 model Settings {
@@ -71,9 +80,9 @@ model Banner {
 model Admin {
   id        Int      @id @default(autoincrement())
   username  String   @unique
-  email     String   @unique
-  password  String   // akan di-hash
-  role      String   @default("admin") // admin, super_admin
+  email     String?  @unique  // Tambahkan ? untuk membuat optional
+  password  String
+  role      String   @default("admin")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,4 +127,21 @@ model Discount {
   validUntil  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model RobuxTheme {
+  id          Int      @id @default(autoincrement())
+  name        String   // Nama tema (misal: "Paket Hemat", "Paket Populer", "Paket Premium")
+  description String?  // Deskripsi tema
+  robuxAmount Int      // Jumlah Robux
+  price       Int      // Harga dalam rupiah
+  themeType   String   // "theme1", "theme2", "theme3" atau "small", "regular", "premium"
+  isPremium   Boolean  @default(false) // Apakah tema ini premium (untuk modal warning)
+  isActive    Boolean  @default(true)
+  order       Int      @default(0) // Urutan tampilan
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relasi ke transaksi
+  transactions Transaction[]
 }

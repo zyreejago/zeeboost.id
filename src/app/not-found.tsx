@@ -54,17 +54,17 @@ export default function NotFound() {
               <i className="fas fa-home mr-2"></i>
               Kembali ke Beranda
             </a>
-            <a
+            {/* <a
               href="/topup"
               className="px-8 py-4 bg-white/80 backdrop-blur-sm text-gray-800 rounded-xl font-semibold hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl border border-white/50"
             >
               <i className="fas fa-coins mr-2"></i>
               Topup Robux
-            </a>
+            </a> */}
           </div>
           
           {/* Popular Links */}
-          <div className="bg-white/70 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/50">
+          {/* <div className="bg-white/70 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/50">
             <h3 className="font-bold text-gray-800 mb-6 text-xl">
               <i className="fas fa-star mr-2 text-yellow-500"></i>
               Halaman Populer
@@ -98,8 +98,8 @@ export default function NotFound() {
                 <i className="fas fa-envelope mr-3 w-5 text-green-500 group-hover:text-green-600"></i>
                 <span className="font-medium">Kontak</span>
               </a>
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
       </main>
       <SimpleFooter />

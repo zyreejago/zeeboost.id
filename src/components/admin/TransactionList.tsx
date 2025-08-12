@@ -9,12 +9,15 @@ interface TransactionListProps {
 }
 
 export default function TransactionList({ transactions, onRefresh }: TransactionListProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [selectedTransactions, setSelectedTransactions] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'processing' | 'completed' | 'failed' | 'pending_failed' | 'paid' | 'success'>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'status'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Fungsi untuk mengekstrak gamepass ID dari transaction
   const extractGamepassId = (transaction: Transaction): string | null => {
@@ -32,6 +35,61 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
   const createGamepassLink = (transaction: Transaction): string | null => {
     const gamepassId = extractGamepassId(transaction);
     return gamepassId ? `https://www.roblox.com/game-pass/${gamepassId}` : null;
+  };
+  
+  // Fungsi untuk membuka modal detail
+  const openDetailModal = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setShowDetailModal(true);
+  };
+
+  // Fungsi untuk menutup modal detail
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedTransaction(null);
+  };
+
+  const updateTransactionStatus = async (transactionId: number, newStatus: string) => {
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch('/api/admin/transactions/update-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+          // Hapus Authorization header karena menggunakan HTTP-only cookie
+        },
+        body: JSON.stringify({
+          transactionId,
+          status: newStatus
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(result.message);
+        onRefresh();
+        if (selectedTransaction && selectedTransaction.id === transactionId) {
+          setSelectedTransaction(result.transaction);
+        }
+      } else {
+        alert(result.error || 'Gagal mengupdate status transaksi');
+      }
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      alert('Terjadi kesalahan saat mengupdate status transaksi');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  // Fungsi untuk parse backup codes
+  const parseBackupCodes = (backupCodesJson: string): string[] => {
+    try {
+      return JSON.parse(backupCodesJson);
+    } catch {
+      return [];
+    }
   };
 
   // Filter dan search transaksi
@@ -52,7 +110,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(t => 
         t.user.robloxUsername.toLowerCase().includes(term) ||
-        t.user.email.toLowerCase().includes(term) ||
+        (t.user.email && t.user.email.toLowerCase().includes(term)) ||
         t.id.toString().includes(term)
       );
     }
@@ -113,15 +171,25 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
 
     setIsDeleting(true);
     try {
+      // Tentukan deleteType berdasarkan status transaksi yang dipilih
+      const selectedStatuses = transactions
+        .filter(t => selectedTransactions.includes(t.id))
+        .map(t => t.status);
+
+      const deleteType =
+        selectedStatuses.every(s => s === 'pending') ? 'pending' :
+        selectedStatuses.every(s => s === 'failed') ? 'failed' :
+        'pending_failed';
+
       const response = await fetch('/api/admin/transactions/delete', {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Content-Type': 'application/json'
+          // Hapus Authorization header
         },
         body: JSON.stringify({
           transactionIds: selectedTransactions,
-          deleteType: filterStatus === 'all' ? 'pending_failed' : filterStatus
+          deleteType: deleteType
         })
       });
 
@@ -152,8 +220,8 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
       const response = await fetch('/api/admin/transactions/delete', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Content-Type': 'application/json'
+          // Hapus Authorization header
         },
         body: JSON.stringify({
           days: 2,
@@ -180,7 +248,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
   const deletableTransactions = filteredAndSearchedTransactions.filter(t => ['pending', 'failed'].includes(t.status));
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header dengan kontrol */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex flex-col gap-4">
@@ -337,7 +405,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
                       {transaction.user.robloxUsername}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {transaction.user.email}
+                      {transaction.user.email || '-'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
@@ -358,37 +426,57 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      transaction.method === 'gamepass' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                    }`}>
-                      {transaction.method === 'gamepass' ? 'Gamepass' : 'Login'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {gamepassLink ? (
-                      <a
-                        href={gamepassLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
+                    {/* Ubah bagian ini untuk menambahkan tombol detail untuk gamepass juga */}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => openDetailModal(transaction)}
+                        className="inline-flex items-center px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded-md hover:bg-blue-600 transition-colors"
                       >
-                        Lihat Gamepass
-                      </a>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
+                        <i className="fas fa-info-circle mr-1"></i>
+                        Detail
+                      </button>
+                      {transaction.method === 'gamepass' && gamepassLink && (
+                        <a
+                          href={gamepassLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1 bg-green-500 text-white text-xs font-medium rounded-md hover:bg-green-600 transition-colors"
+                        >
+                          <i className="fas fa-external-link-alt mr-1"></i>
+                          Gamepass
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {/* Tambahkan dropdown untuk update status */}
+                    <div className="flex items-center space-x-2">
+                    
+                      <select
+                        value={transaction.status}
+                        onChange={(e) => updateTransactionStatus(transaction.id, e.target.value)}
+                        disabled={isUpdatingStatus}
+                        className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="completed">Selesai</option>
+                        <option value="failed">Gagal</option>
+                      </select>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
                       transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      transaction.status === 'processing' ? 'bg-blue-100 text-blue-800' :
                       'bg-red-100 text-red-800'
                     }`}>
                       {transaction.status === 'completed' ? 'Selesai' :
-                       transaction.status === 'pending' ? 'Pending' : 'Gagal'}
+                       transaction.status === 'pending' ? 'Pending' :
+                       transaction.status === 'processing' ? 'Sedang Diproses' : 'Gagal'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       {new Date(transaction.createdAt).toLocaleDateString('id-ID')}
                     </div>
@@ -409,6 +497,230 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
       {filteredAndSearchedTransactions.length === 0 && (
         <div className="p-8 text-center text-gray-500">
           {searchTerm || filterStatus !== 'all' ? 'Tidak ada transaksi yang sesuai dengan filter' : 'Tidak ada transaksi ditemukan'}
+        </div>
+      )}
+      
+      {/* Modal Detail Via Login */}
+      {showDetailModal && selectedTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header Modal */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Detail Transaksi {selectedTransaction.method === 'gamepass' ? 'Gamepass' : 'Via Login'} #{selectedTransaction.id}
+                </h3>
+                <button
+                  onClick={closeDetailModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <i className="fas fa-times text-xl"></i>
+                </button>
+              </div>
+              
+              {/* Content Modal */}
+              <div className="space-y-6">
+                {/* Informasi User */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <i className="fas fa-user mr-2 text-blue-500"></i>
+                    Informasi Akun
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Username Roblox</label>
+                      <p className="mt-1 text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border">
+                        {selectedTransaction.user.robloxUsername}
+                      </p>
+                    </div>
+                    {/* Tampilkan password hanya untuk Via Login */}
+                    {selectedTransaction.method === 'vialogin' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                        <p className="mt-1 text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border">
+                          {selectedTransaction.robloxPassword || 'Tidak tersedia'}
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
+                      <p className="mt-1 text-sm text-gray-900 bg-white px-3 py-2 rounded border">
+                        {selectedTransaction.user.whatsappNumber ? (
+                          <a 
+                            href={`https://wa.me/${selectedTransaction.user.whatsappNumber}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 hover:text-green-800 flex items-center"
+                          >
+                            <i className="fab fa-whatsapp mr-2"></i>
+                            +{selectedTransaction.user.whatsappNumber}
+                          </a>
+                        ) : (
+                          'Tidak tersedia'
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
+                      <p className="mt-1 text-sm text-gray-900 bg-white px-3 py-2 rounded border">
+                        {selectedTransaction.user.email || 'Tidak tersedia'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Informasi Robux */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <i className="fas fa-coins mr-2 text-yellow-500"></i>
+                    Informasi Robux
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Jumlah Robux</label>
+                      <p className="mt-1 text-lg font-bold text-blue-600">
+                        {selectedTransaction.robuxAmount.toLocaleString()} R$
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Metode</label>
+                      <p className="mt-1 text-sm text-gray-900 capitalize">
+                        {selectedTransaction.method === 'gamepass' ? 'Gamepass' : 'Via Login'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Total Harga</label>
+                      <p className="mt-1 text-lg font-bold text-green-600">
+                        Rp {(selectedTransaction.finalPrice || selectedTransaction.totalPrice).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Informasi Gamepass - hanya untuk transaksi gamepass */}
+                {selectedTransaction.method === 'gamepass' && (
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <i className="fas fa-gamepad mr-2 text-green-500"></i>
+                      Informasi Gamepass
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {extractGamepassId(selectedTransaction) && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Gamepass ID</label>
+                          <p className="mt-1 text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border">
+                            {extractGamepassId(selectedTransaction)}
+                          </p>
+                        </div>
+                      )}
+                      {createGamepassLink(selectedTransaction) && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Link Gamepass</label>
+                          <div className="mt-1">
+                            <a
+                              href={createGamepassLink(selectedTransaction)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              <i className="fas fa-external-link-alt mr-2"></i>
+                              Buka Gamepass
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Verifikasi 2FA - hanya untuk Via Login */}
+                {selectedTransaction.method === 'vialogin' && selectedTransaction.isAliveVerification && (
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <i className="fas fa-shield-alt mr-2 text-orange-500"></i>
+                      Verifikasi 2FA Aktif
+                    </h4>
+                    <div className="mb-3">
+                      <div className="flex items-center text-sm text-orange-700">
+                        <i className="fas fa-check-circle mr-2"></i>
+                        Akun menggunakan verifikasi hidup (2FA)
+                      </div>
+                    </div>
+                    
+                    {selectedTransaction.backupCodes && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Backup Codes</label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          {parseBackupCodes(selectedTransaction.backupCodes).map((code, index) => (
+                            <div key={index} className="bg-white px-3 py-2 rounded border font-mono text-sm">
+                              {code || 'N/A'}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Status Transaksi dengan Update */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <i className="fas fa-info-circle mr-2 text-gray-500"></i>
+                    Status Transaksi
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Status Saat Ini</label>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        selectedTransaction.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        selectedTransaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedTransaction.status === 'completed' ? 'Selesai' :
+                         selectedTransaction.status === 'pending' ? 'Pending' : 'Gagal'}
+                      </span>
+                      
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
+                        <select
+                          value={selectedTransaction.status}
+                          onChange={(e) => updateTransactionStatus(selectedTransaction.id, e.target.value)}
+                          disabled={isUpdatingStatus}
+                          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="completed">Selesai</option>
+                          <option value="failed">Gagal</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tanggal</label>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {new Date(selectedTransaction.createdAt).toLocaleDateString('id-ID', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Footer Modal */}
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={closeDetailModal}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

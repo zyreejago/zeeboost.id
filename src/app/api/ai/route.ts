@@ -62,7 +62,7 @@ Keunggulan ZeeBoost:
 - Support 24/7
 - Sistem otomatis tanpa delay
 
-Kontak: support@zeeboost.com | WhatsApp: +62 812-3456-7890
+Kontak: support@zeeboost.com | WhatsApp: +6287740517441
 `;
 
     // Prompt instruksi
@@ -153,7 +153,7 @@ Pertanyaan user: ${message}
     console.error("AI Error:", error);
     return NextResponse.json(
       { 
-        text: "Maaf, terjadi kesalahan sistem. Tim support kami akan segera membantu Anda. Silakan hubungi WhatsApp: +62 812-3456-7890 untuk bantuan langsung." 
+        text: "Maaf, terjadi kesalahan sistem. Tim support kami akan segera membantu Anda. Silakan hubungi WhatsApp: +6287740517441 untuk bantuan langsung." 
       },
       { status: 500 }
     );

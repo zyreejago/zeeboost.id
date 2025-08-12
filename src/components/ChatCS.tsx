@@ -34,7 +34,7 @@ const ChatCS = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Halo! Saya **AI Customer Service ZeeBoost** yang siap membantu Anda 24/7. Saya dapat menjawab pertanyaan seputar:\n\n• **Layanan ZeeBoost** (topup Robux, pembayaran)\n• **Roblox** (game, akun, username)\n• **Robux** (mata uang virtual)\n\nAda yang bisa saya bantu?",
+      text: "Halo! Saya **AI Customer Service ZeeBoost** yang siap membantu Anda 24/7. Saya dapat menjawab pertanyaan seputar:\n\n• **Layanan ZeeBoost** (topup Robux, pembayaran)\n• **Roblox** (game, akun, username)\n• **Robux** (mata uang virtual)\n\n📱 **Untuk bantuan langsung dari admin, hubungi WhatsApp kami:**\n**+6287740517441**\n\nAda yang bisa saya bantu?",
       isUser: false,
       timestamp: new Date()
     }
