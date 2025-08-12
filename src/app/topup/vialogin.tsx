@@ -112,7 +112,8 @@ export default function ViaLoginTopup() {
     try {
       const response = await fetch('/api/settings');
       const data = await response.json();
-      setCanOrder(data.canOrder ?? true);
+      // Konversi string 'true'/'false' ke boolean
+      setCanOrder(data.canOrder === 'true');
     } catch (error) {
       console.error('Error fetching settings:', error);
     }
@@ -503,7 +504,7 @@ export default function ViaLoginTopup() {
               <p className="text-sm text-gray-600">
                 Silakan isi 3 backup code Anda. 
                 <a 
-                  href="https://help.roblox.com/hc/en-us/articles/212459863" 
+                  href="/backup-code-guide" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 underline cursor-pointer"

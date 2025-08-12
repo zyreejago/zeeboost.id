@@ -326,7 +326,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         robuxAmount,
         method: 'gamepass',
         whatsappNumber: whatsappNumber.trim(),
-        email: email.trim(),
+        email: email.trim() || null,
         couponCode: couponCode.trim() || null,
         discount: getDiscountAmount(),
         finalPrice: calculatePrice(),
@@ -351,7 +351,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
           transactionId: transaction.id,
           amount: calculatePrice(),
           customerName: robloxUser.username,
-          customerEmail: email.trim(),
+          customerEmail: email.trim() || `${robloxUser.username.toLowerCase()}@zeeboost.com`, // Email dummy jika kosong
           customerPhone: whatsappNumber.trim(),
           paymentMethod: paymentMethod
         };
@@ -414,7 +414,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         robuxAmount,
         method: 'gamepass',
         whatsappNumber: whatsappNumber.trim(),
-        email: email.trim(),
+        email: email.trim() || null,
         couponCode: couponCode.trim() || null,
         discount: getDiscountAmount(),
         finalPrice: calculatePrice(),
@@ -422,7 +422,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         gamepassVerified: gamepassVerified,
         // PERBAIKAN: Pastikan gamepassId dikirim
         ...(gamepassVerified && window.gamepassDetails && {
-          gamepassId: window.gamepassDetails.id.toString()  // <-- CONVERT TO STRING
+          gamepassId: window.gamepassDetails.id.toString()
         })
       };
       
@@ -446,7 +446,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
           transactionId: transaction.id,
           amount: calculatePrice(),
           customerName: robloxUser.username,
-          customerEmail: email.trim(),
+          customerEmail: email.trim() || `${robloxUser.username.toLowerCase()}@zeeboost.com`, // Email dummy jika kosong
           customerPhone: whatsappNumber.trim(),
           paymentMethod: paymentMethod
         };
@@ -575,11 +575,6 @@ const handleTopup = async () => {
     return;
   }
   
-  if (!email.trim()) {
-    showNotification('Error', 'Silakan masukkan email!', 'error');
-    return;
-  }
-  
   // Tampilkan modal informasi delivery terlebih dahulu
   setShowDeliveryModal(true);
 };
@@ -699,7 +694,7 @@ const handleTopup = async () => {
         {/* Email Input - Responsive */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            Email
+            Email (Opsional)
           </label>
           <input
             type="email"
@@ -808,7 +803,7 @@ const handleTopup = async () => {
         {/* Submit Button - Responsive */}
         <button
           onClick={handleTopup}
-          disabled={!robloxUser || isLoading || !whatsappNumber.trim() || !email.trim() || !canOrder}
+          disabled={!robloxUser || isLoading || !whatsappNumber.trim() || !canOrder}
           className="w-full bg-primary-dark hover:bg-primary-700 text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
         >
           {isLoading ? (
@@ -874,7 +869,7 @@ const handleTopup = async () => {
                 <button
                   onClick={verifyGamepassInModal}
                   disabled={isCheckingGamepass}
-                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-primary-dark text-white rounded-lg hover:bg-primary-900 disabled:opacity-50 transition-colors"
                 >
                   {isCheckingGamepass ? 'Memverifikasi...' : 'Verifikasi Gamepass'}
                 </button>
@@ -965,7 +960,7 @@ const handleTopup = async () => {
               setShowDeliveryModal(false);
               setShowGamepassModal(true);
             }}
-            className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="flex-1 px-4 py-2 bg-primary-dark text-white rounded-lg hover:bg-primary-900 transition-colors"
           >
             Saya Setuju
           </button>

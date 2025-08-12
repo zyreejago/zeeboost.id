@@ -67,7 +67,7 @@ Gamepass adalah item digital yang dapat dibeli oleh pemain untuk mendapatkan aks
       
       {/* Judul di bawah banner */}
       <div className="text-center mt-4 mb-8">
-        <h1 className="text-4xl font-bold text-black">Cara buat <span className="text-primary">gamepass</span> di Roblox</h1>
+        <h1 className="text-4xl font-bold text-black">Cara membuat <span className="text-primary">gamepass</span> di Roblox!</h1>
       </div>
       
       {/* Main Content */}

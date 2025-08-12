@@ -54,7 +54,7 @@ export default function AdminDashboard() {
             robuxStock={robuxStock}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
-            fetchData={fetchData}
+            onRefresh={fetchData} // Ubah dari fetchData menjadi onRefresh
           />
         );
       case 'robux-themes':

@@ -30,10 +30,61 @@ export default function RobuxThemesManagement() {
     isPremium: false,
     order: 0
   });
+  
+  // Tambahkan state untuk pengaturan canOrder
+  const [canOrder, setCanOrder] = useState(true);
+  const [updatingSettings, setUpdatingSettings] = useState(false);
 
   useEffect(() => {
     fetchThemes();
+    fetchSettings();
   }, []);
+
+  // Tambahkan fungsi untuk mengambil pengaturan
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      
+      if (data.canOrder !== undefined) {
+        setCanOrder(data.canOrder === 'true');
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  // Tambahkan fungsi untuk mengupdate pengaturan canOrder
+  const updateCanOrder = async (value: boolean) => {
+    setUpdatingSettings(true);
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: 'canOrder',
+          value: value.toString(),
+          description: 'Mengizinkan pemesanan via login'
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setCanOrder(value);
+        alert(value ? 'Pesanan via login diaktifkan!' : 'Pesanan via login dinonaktifkan!');
+      } else {
+        alert('Gagal mengupdate pengaturan: ' + (data.error || 'Terjadi kesalahan'));
+      }
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      alert('Gagal mengupdate pengaturan');
+    } finally {
+      setUpdatingSettings(false);
+    }
+  };
 
   const fetchThemes = async () => {
     try {
@@ -176,6 +227,36 @@ export default function RobuxThemesManagement() {
           <i className="fas fa-plus mr-2"></i>
           Tambah Tema
         </button>
+      </div>
+
+      {/* Tambahkan pengaturan canOrder */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Pengaturan Pesanan Via Login</h2>
+            <p className="text-sm text-gray-600 mt-1">Aktifkan atau nonaktifkan kemampuan pelanggan untuk melakukan pemesanan via login</p>
+          </div>
+          <div className="flex items-center">
+            <span className="mr-3 text-sm font-medium text-gray-700">
+              {canOrder ? 'Pesanan Diizinkan' : 'Pesanan Ditutup'}
+            </span>
+            <button
+              onClick={() => updateCanOrder(!canOrder)}
+              disabled={updatingSettings}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${canOrder ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${canOrder ? 'translate-x-6' : 'translate-x-1'}`}
+              />
+            </button>
+          </div>
+        </div>
+        {updatingSettings && (
+          <div className="mt-2 flex items-center text-sm text-blue-600">
+            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+            <span>Memperbarui pengaturan...</span>
+          </div>
+        )}
       </div>
 
       {/* Table */}
