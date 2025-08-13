@@ -18,7 +18,7 @@ async function createAdmin() {
     });
 
     console.log('Admin berhasil dibuat:', admin);
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating admin:', error);
   } finally {
     await prisma.$disconnect();

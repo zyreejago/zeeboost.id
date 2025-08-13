@@ -13,8 +13,8 @@ export async function GET() {
     });
 
     return NextResponse.json(stocks);
-  } catch (error) {
-    console.error('Error fetching robux stock:', error);
+  } catch (_error) {
+    console._error('Error fetching robux stock:', error);
     return NextResponse.json(
       { error: 'Failed to fetch robux stock' },
       { status: 500 }

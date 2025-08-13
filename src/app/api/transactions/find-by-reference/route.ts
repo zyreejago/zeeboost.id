@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
         }
       }
     });
-  } catch (error) {
-    console.error('Find transaction by reference error:', error);
+  } catch (_error) {
+    console._error('Find transaction by reference error:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mencari transaksi' },
       { status: 500 }

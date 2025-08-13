@@ -19,7 +19,7 @@ export default function BackupCodeGuidePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const markdownContent = `
+  const _markdownContent = `
 # Cara Membuat Backup Code: Panduan Sederhana
 
 Backup code adalah kode cadangan yang sangat penting untuk mengamankan akun Anda. Dengan backup code, Anda bisa mengakses akun meskipun kehilangan akses ke metode autentikasi utama. Berikut panduan sederhana cara membuat backup code.
@@ -45,9 +45,11 @@ Backup code adalah serangkaian kode alfanumerik yang dapat digunakan untuk menga
       {/* Custom Banner dengan style dari Banner.tsx tapi gambar statis */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="relative overflow-hidden rounded-xl shadow-lg bg-gray-100">
-          <img
+          <Image
             src="/header zeeboost.png"
             alt="Backup Code Guide Banner"
+            width={1920}
+            height={648}
             className="w-full h-auto aspect-[1920/648] rounded-xl object-cover"
           />
         </div>

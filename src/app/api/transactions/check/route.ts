@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
         }
       }
     });
-  } catch (error) {
-    console.error('Get transaction error:', error);
+  } catch (_error) {
+    console._error('Get transaction error:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengambil transaksi' },
       { status: 500 }
@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
       transactions: formattedTransactions,
       total: transactions.length
     });
-  } catch (error) {
-    console.error('Check order error:', error);
+  } catch (_error) {
+    console._error('Check order error:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengecek pesanan' },
       { status: 500 }

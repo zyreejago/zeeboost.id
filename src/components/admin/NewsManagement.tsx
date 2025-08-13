@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { News } from '@/types/admin';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
+
 
 // Import MD Editor yang kompatibel dengan React 18+
 const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
@@ -87,8 +89,8 @@ export default function NewsManagement({
       } else {
         throw new Error('Failed to upload image');
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
+    } catch (_error) {
+      console._error('Error uploading image:', error);
       alert('Gagal mengupload gambar!');
       return null;
     } finally {
@@ -132,8 +134,8 @@ export default function NewsManagement({
       } else {
         throw new Error(data.error || 'Gagal menambahkan news');
       }
-    } catch (error) {
-      console.error('Error adding news:', error);
+    } catch (_error) {
+      console._error('Error adding news:', error);
       alert(`Gagal menambahkan news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
@@ -193,8 +195,8 @@ export default function NewsManagement({
       } else {
         throw new Error(data.error || 'Gagal memperbarui news');
       }
-    } catch (error) {
-      console.error('Error updating news:', error);
+    } catch (_error) {
+      console._error('Error updating news:', error);
       alert(`Gagal memperbarui news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
@@ -231,8 +233,8 @@ export default function NewsManagement({
       } else {
         throw new Error(data.error || 'Gagal menghapus news');
       }
-    } catch (error) {
-      console.error('Error deleting news:', error);
+    } catch (_error) {
+      console._error('Error deleting news:', error);
       alert(`Gagal menghapus news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
@@ -273,7 +275,7 @@ export default function NewsManagement({
               />
               {imagePreview && (
                 <div className="mt-2">
-                  <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />
+                  <Image src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />
                 </div>
               )}
             </div>
@@ -373,11 +375,11 @@ export default function NewsManagement({
                 />
                 {editImagePreview ? (
                   <div className="mt-2">
-                    <img src={editImagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />
+                    <Image src={editImagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />
                   </div>
                 ) : editForm.imageUrl && (
                   <div className="mt-2">
-                    <img src={editForm.imageUrl} alt="Current" className="h-20 w-20 object-cover rounded-lg" />
+                    <Image src={editForm.imageUrl} alt="Current" className="h-20 w-20 object-cover rounded-lg" />
                     <p className="text-xs text-gray-500 mt-1">Gambar saat ini</p>
                   </div>
                 )}
@@ -486,7 +488,7 @@ export default function NewsManagement({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {item.imageUrl && (
-                        <img className="h-10 w-10 rounded-lg object-cover mr-4" src={item.imageUrl} alt="" />
+                        <Image className="h-10 w-10 rounded-lg object-cover mr-4" src={item.imageUrl} alt="" />
                       )}
                       <div>
                         <div className="text-sm font-medium text-gray-900">{item.title}</div>

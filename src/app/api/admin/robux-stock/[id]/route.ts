@@ -17,7 +17,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     });
 
     return NextResponse.json({ message: 'Stock berhasil dihapus' });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to delete robux stock' },
       { status: 500 }
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     });
 
     return NextResponse.json(robuxStock);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to update robux stock' },
       { status: 500 }

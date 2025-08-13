@@ -26,7 +26,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
           setIsAuthenticated(false);
           router.push('/admin/login');
         }
-      } catch (error) {
+      } catch (_error) {
         setIsAuthenticated(false);
         router.push('/admin/login');
       }

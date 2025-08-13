@@ -2,17 +2,61 @@
 
 import { useState } from 'react';
 
+interface TripayData {
+  reference: string;
+  merchant_ref: string;
+  payment_method: string;
+  payment_name: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  amount: number;
+  fee_merchant: number;
+  fee_customer: number;
+  total_fee: number;
+  amount_received: number;
+  pay_code: string;
+  pay_url: string;
+  checkout_url: string;
+  status: string;
+  expired_time: string;
+  order_items: Array<{
+    name: string;
+    price: number;
+    quantity: number;
+    subtotal: number;
+  }>;
+  instructions: Array<{
+    title: string;
+    steps: string[];
+  }>;
+}
+
 interface TripayStatus {
   success: boolean;
   status?: string;
   message?: string;
-  data?: any;
+  data?: TripayData;
   error?: string;
+}
+
+interface TransactionDetails {
+  id: number;
+  userId: number;
+  robuxAmount: number;
+  totalPrice: number;
+  finalPrice?: number;
+  method: string;
+  status: string;
+  paymentReference?: string;
+  paymentMethod?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface TransactionData {
   success: boolean;
-  transaction?: any;
+  transaction?: TransactionDetails;
   error?: string;
 }
 
@@ -40,8 +84,8 @@ export default function DebugTripayPage() {
       const dbData = await dbResponse.json();
       setTransactionResult(dbData);
       
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (_error) {
+      console.error('Error:', _error);
       setTripayResult({ success: false, error: 'Terjadi kesalahan' });
     } finally {
       setLoading(false);
@@ -75,8 +119,8 @@ export default function DebugTripayPage() {
       } else {
         alert('Gagal update status: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error updating status:', error);
+    } catch (_error) {
+      console.error('Error updating status:', _error);
       alert('Terjadi kesalahan saat update status');
     }
   };
@@ -159,34 +203,34 @@ export default function DebugTripayPage() {
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">Transaction ID:</span>
-                  <span>{transactionResult.transaction.id}</span>
+                  <span>{transactionResult.transaction?.id}</span>
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">Status:</span>
                   <span className={`px-2 py-1 rounded text-sm ${
-                    transactionResult.transaction.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                    transactionResult.transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    transactionResult.transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    transactionResult.transaction?.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                    transactionResult.transaction?.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    transactionResult.transaction?.status === 'completed' ? 'bg-green-100 text-green-800' :
                     'bg-red-100 text-red-800'
                   }`}>
-                    {transactionResult.transaction.status}
+                    {transactionResult.transaction?.status}
                   </span>
                 </div>
                 
                 <div>
                   <span className="font-medium">Username:</span>
-                  <span className="ml-2">{transactionResult.transaction.user.robloxUsername}</span>
+                  <span className="ml-2">{transactionResult.transaction?.user.robloxUsername}</span>
                 </div>
                 
                 <div>
                   <span className="font-medium">Robux Amount:</span>
-                  <span className="ml-2">{transactionResult.transaction.robuxAmount.toLocaleString()}</span>
+                  <span className="ml-2">{transactionResult.transaction?.robuxAmount.toLocaleString()}</span>
                 </div>
                 
                 <div>
                   <span className="font-medium">Total Price:</span>
-                  <span className="ml-2">Rp {transactionResult.transaction.totalPrice.toLocaleString()}</span>
+                  <span className="ml-2">Rp {transactionResult.transaction?.totalPrice.toLocaleString()}</span>
                 </div>
                 
                 {/* Status Mismatch Warning */}

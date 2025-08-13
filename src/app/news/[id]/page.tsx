@@ -19,8 +19,8 @@ async function getNews(id: string): Promise<News | null> {
     }
     
     return await response.json();
-  } catch (error) {
-    console.error('Error fetching news:', error);
+  } catch (_error) {
+    console._error('Error fetching news:', error);
     return null;
   }
 }
@@ -38,8 +38,8 @@ async function getRelatedNews(currentId: number): Promise<News[]> {
     
     const data = await response.json();
     return data.news.filter((news: News) => news.id !== currentId);
-  } catch (error) {
-    console.error('Error fetching related news:', error);
+  } catch (_error) {
+    console._error('Error fetching related news:', error);
     return [];
   }
 }
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 
   // Menggunakan createdAt karena publishedAt tidak ada pada tipe News
-  const formattedDate = new Date(news.createdAt).toLocaleDateString('id-ID', {
+  const _formattedDate = new Date(news.createdAt).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -124,7 +124,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
   }
 
   const relatedNews = await getRelatedNews(news.id);
-  const formattedDate = new Date(news.createdAt).toLocaleDateString('id-ID', {
+  const _formattedDate = new Date(news.createdAt).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

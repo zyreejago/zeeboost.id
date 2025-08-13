@@ -31,7 +31,7 @@ export default function GamepassGuidePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const markdownContent = `
+  const _markdownContent = `
 # Cara Membuat Gamepass di Roblox: Panduan Lengkap (Versi Desktop)
 
 Gamepass adalah fitur di Roblox yang memungkinkan developer menjual akses khusus atau item eksklusif kepada pemain. Dengan gamepass, Anda bisa mendapatkan Robux dari game yang Anda buat. Berikut panduan lengkap cara membuat gamepass di Roblox menggunakan komputer/laptop.
@@ -57,9 +57,11 @@ Gamepass adalah item digital yang dapat dibeli oleh pemain untuk mendapatkan aks
       {/* Custom Banner dengan style dari Banner.tsx tapi gambar statis */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="relative overflow-hidden rounded-xl shadow-lg bg-gray-100">
-          <img
+          <Image
             src="/header zeeboost.png"
             alt="Gamepass Guide Banner"
+            width={1920}
+            height={648}
             className="w-full h-auto aspect-[1920/648] rounded-xl object-cover"
           />
         </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth';
+import { Prisma } from '@prisma/client';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid transaction IDs' }, { status: 400 });
     }
 
-    let whereCondition: any = {
+    const whereCondition: Prisma.TransactionWhereInput = {
       id: { in: transactionIds }
     };
 
@@ -41,8 +42,8 @@ export async function DELETE(request: NextRequest) {
       message: `${deletedTransactions.count} transaksi berhasil dihapus`
     });
 
-  } catch (error) {
-    console.error('Error deleting transactions:', error);
+  } catch (_error) {
+    console.error('Error deleting transactions:', _error);
     return NextResponse.json(
       { error: 'Failed to delete transactions' },
       { status: 500 }
@@ -76,8 +77,8 @@ export async function POST(request: NextRequest) {
       message: `${deletedTransactions.count} transaksi lama berhasil dihapus`
     });
 
-  } catch (error) {
-    console.error('Error auto-deleting transactions:', error);
+  } catch (_error) {
+    console.error('Error auto-deleting transactions:', _error);
     return NextResponse.json(
       { error: 'Failed to auto-delete transactions' },
       { status: 500 }

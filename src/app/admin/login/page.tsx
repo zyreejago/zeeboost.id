@@ -28,7 +28,7 @@ export default function AdminLogin() {
       } else {
         setError(data.error || 'Login failed');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Network error');
     } finally {
       setIsLoading(false);

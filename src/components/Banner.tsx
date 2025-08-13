@@ -35,8 +35,8 @@ export default function Banner() {
       const response = await fetch('/api/banners');
       const data = await response.json();
       setBanners(data.filter((banner: BannerData) => banner.isActive));
-    } catch (error) {
-      console.error('Failed to fetch banners:', error);
+    } catch (_error) {
+      console._error('Failed to fetch banners:', error);
     } finally {
       setIsLoading(false);
     }
@@ -90,9 +90,11 @@ export default function Banner() {
     <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="relative overflow-hidden rounded-xl shadow-lg bg-gray-100">
         {banner.imageUrl ? (
-          <img
+          <Image
             src={banner.imageUrl}
             alt={banner.title || 'Banner'}
+            width={1920}
+            height={648}
             className="w-full h-auto aspect-[1920/648] rounded-xl object-cover"
           />
         ) : (

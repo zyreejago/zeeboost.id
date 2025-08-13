@@ -65,8 +65,8 @@ export default function DiscountManagement({ discounts, onRefresh }: DiscountMan
       } else {
         alert('Gagal menyimpan discount');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (_error) {
+      console._error('Error:', error);
       alert('Terjadi kesalahan');
     } finally {
       setIsLoading(false);
@@ -103,8 +103,8 @@ export default function DiscountManagement({ discounts, onRefresh }: DiscountMan
       } else {
         alert('Gagal menghapus discount');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (_error) {
+      console._error('Error:', error);
       alert('Terjadi kesalahan');
     } finally {
       setIsLoading(false);

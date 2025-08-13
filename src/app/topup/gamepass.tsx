@@ -2,6 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import RobuxSlider from '@/components/RobuxSlider';
+import Image from 'next/image';
+
+
+interface RobuxStockItem {
+  id: number;
+  amount: number;
+  price: number;
+  isActive: boolean;
+  name?: string;
+  allowOrders?: boolean;
+}
+
+interface GamepassDetails {
+  id?: number;
+  name?: string;
+  price?: number;
+  creatorName?: string;
+  isVerified?: boolean;
+}
 
 // Tambahkan deklarasi tipe untuk window
 declare global {
@@ -50,7 +69,7 @@ export default function GamepassTopup() {
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
   
   // Tambahkan state untuk robux stock
-  const [robuxStock, setRobuxStock] = useState<any[]>([]);
+  const [robuxStock, setRobuxStock] = useState<RobuxStockItem[]>([]);
   
   const [gamepassStep, setGamepassStep] = useState<'create' | 'verify' | 'completed'>('create');
   const [requiredGamepassPrice, setRequiredGamepassPrice] = useState(0);
@@ -72,7 +91,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
     type: 'success' | 'error' | 'info';
     onConfirm?: () => void;
     onCancel?: () => void;
-    gamepassDetails?: any;
+    gamepassDetails?: GamepassDetails;
     robuxAmount?: number;
     totalPrice?: number;
   }>({} as any);
@@ -146,8 +165,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         const pricePerHundred = stockData[0].price;
         setRobuxPrice(pricePerHundred);
       }
-    } catch (error) {
-      console.error('Failed to fetch robux price:', error);
+    } catch (_error) {
+      console._error('Failed to fetch robux price:', error);
       // Fallback ke harga default jika gagal
       setRobuxPrice(0);
     }
@@ -204,8 +223,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
       } else {
         setRobloxUser(null);
       }
-    } catch (error) {
-      console.error('Error validating username:', error);
+    } catch (_error) {
+      console._error('Error validating username:', error);
       setRobloxUser(null);
     } finally {
       setIsValidating(false);
@@ -233,8 +252,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setCouponData(null);
         setCouponError(data.message || 'Kode kupon tidak valid');
       }
-    } catch (error) {
-      console.error('Error validating coupon:', error);
+    } catch (_error) {
+      console._error('Error validating coupon:', error);
       setCouponData(null);
       setCouponError('Gagal memvalidasi kupon');
     } finally {
@@ -275,7 +294,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   };
   
   // Fungsi check gamepass
-  const checkGamepass = async () => {
+  const _checkGamepass = async () => {
     if (!robloxUser) {
       showNotification('Error', 'Silakan validasi username terlebih dahulu!', 'error');
       return;
@@ -302,8 +321,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         showNotification('Error', 'Gamepass belum ditemukan atau harga tidak sesuai. Pastikan Anda sudah membuat gamepass dengan harga yang benar.', 'error');
         setGamepassVerified(false);
       }
-    } catch (error) {
-      console.error('Error checking gamepass:', error);
+    } catch (_error) {
+      console._error('Error checking gamepass:', error);
       showNotification('Error', 'Gagal memverifikasi gamepass!', 'error');
       setGamepassVerified(false);
     } finally {
@@ -390,8 +409,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
       } else {
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
-    } catch (error) {
-      console.error('Error creating transaction:', error);
+    } catch (_error) {
+      console._error('Error creating transaction:', error);
       showNotification('Error', 'Terjadi kesalahan!', 'error');
     } finally {
       setIsLoading(false);
@@ -399,7 +418,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   };
 
   // Fungsi terpisah untuk membuat transaksi
-  const createTransaction = async () => {
+  const _createTransaction = async () => {
     if (!robloxUser) {
       showNotification('Error', 'Data pengguna Roblox tidak ditemukan!', 'error');
       return;
@@ -491,8 +510,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
       } else {
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
-    } catch (error) {
-      console.error('Error creating transaction:', error);
+    } catch (_error) {
+      console._error('Error creating transaction:', error);
       showNotification('Error', 'Terjadi kesalahan!', 'error');
     } finally {
       setIsLoading(false);
@@ -556,8 +575,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         'error'
       );
     }
-  } catch (error) {
-    console.error('Error checking gamepass:', error);
+  } catch (_error) {
+    console._error('Error checking gamepass:', error);
     showNotification('Error', 'Gagal memverifikasi gamepass!', 'error');
   } finally {
     setIsCheckingGamepass(false);
@@ -633,7 +652,7 @@ const handleTopup = async () => {
           {robloxUser && (
             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-3">
-                <img 
+                <Image 
                   src={robloxUser.avatarUrl} 
                   alt={robloxUser.username}
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-green-300"

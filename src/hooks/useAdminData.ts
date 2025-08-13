@@ -24,8 +24,8 @@ export const useAdminData = () => {
       setBanners(await bannersRes.json());
       setRobuxStock(await stockRes.json());
       setDiscounts(await discountsRes.json());
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
+    } catch (_error) {
+      console._error('Failed to fetch data:', error);
     }
   };
 

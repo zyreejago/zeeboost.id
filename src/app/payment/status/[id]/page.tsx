@@ -19,8 +19,8 @@ export default function PaymentStatusPage() {
           // Tampilkan notifikasi berhasil hanya ketika status benar-benar completed
           alert('Pembayaran berhasil! Robux akan segera ditambahkan ke akun Anda.');
         }
-      } catch (error) {
-        console.error('Error checking payment status:', error);
+      } catch (_error) {
+        console._error('Error checking payment status:', error);
       } finally {
         setLoading(false);
       }

@@ -9,8 +9,8 @@ export async function GET() {
     });
     
     return NextResponse.json(banners);
-  } catch (error) {
-    console.error('Get banners error:', error);
+  } catch (_error) {
+    console._error('Get banners error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch banners' },
       { status: 500 }
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json(banner);
-  } catch (error) {
-    console.error('Create banner error:', error);
+  } catch (_error) {
+    console._error('Create banner error:', error);
     return NextResponse.json(
       { error: 'Failed to create banner' },
       { status: 500 }

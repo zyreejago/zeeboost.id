@@ -75,8 +75,8 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
       } else {
         alert(result.error || 'Gagal mengupdate status transaksi');
       }
-    } catch (error) {
-      console.error('Error updating transaction status:', error);
+    } catch (_error) {
+      console._error('Error updating transaction status:', error);
       alert('Terjadi kesalahan saat mengupdate status transaksi');
     } finally {
       setIsUpdatingStatus(false);
@@ -202,8 +202,8 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
       } else {
         alert(result.error || 'Gagal menghapus transaksi');
       }
-    } catch (error) {
-      console.error('Error deleting transactions:', error);
+    } catch (_error) {
+      console._error('Error deleting transactions:', error);
       alert('Terjadi kesalahan saat menghapus transaksi');
     } finally {
       setIsDeleting(false);
@@ -237,8 +237,8 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
       } else {
         alert(result.error || 'Gagal menghapus transaksi lama');
       }
-    } catch (error) {
-      console.error('Error auto-cleaning transactions:', error);
+    } catch (_error) {
+      console._error('Error auto-cleaning transactions:', error);
       alert('Terjadi kesalahan saat menghapus transaksi lama');
     } finally {
       setIsDeleting(false);

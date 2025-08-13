@@ -36,8 +36,8 @@ export async function PUT(request: NextRequest) {
       message: `Status transaksi berhasil diubah menjadi ${status}`
     });
 
-  } catch (error) {
-    console.error('Error updating transaction status:', error);
+  } catch (_error) {
+    console._error('Error updating transaction status:', error);
     return NextResponse.json(
       { error: 'Failed to update transaction status' },
       { status: 500 }

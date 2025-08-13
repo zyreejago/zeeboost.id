@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Banner } from '@/types/admin';
+import Image from 'next/image';
+
 
 interface BannerManagementProps {
   banners: Banner[];
@@ -95,8 +97,8 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
       } else {
         alert('Gagal menyimpan banner!');
       }
-    } catch (error) {
-      console.error('Error saving banner:', error);
+    } catch (_error) {
+      console._error('Error saving banner:', error);
       alert('Terjadi kesalahan!');
     } finally {
       setIsLoading(false);
@@ -121,8 +123,8 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
       } else {
         alert('Gagal menghapus banner!');
       }
-    } catch (error) {
-      console.error('Error deleting banner:', error);
+    } catch (_error) {
+      console._error('Error deleting banner:', error);
       alert('Terjadi kesalahan!');
     } finally {
       setIsLoading(false);
@@ -149,8 +151,8 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
       } else {
         alert('Gagal mengubah status banner!');
       }
-    } catch (error) {
-      console.error('Error toggling banner status:', error);
+    } catch (_error) {
+      console._error('Error toggling banner status:', error);
       alert('Terjadi kesalahan!');
     } finally {
       setIsLoading(false);
@@ -212,7 +214,7 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
               />
               {imagePreview && (
                 <div className="mt-2">
-                  <img 
+                  <Image 
                     src={imagePreview} 
                     alt="Preview" 
                     className="h-32 w-auto rounded border shadow-sm"
@@ -307,7 +309,7 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
                 <tr key={banner.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {banner.imageUrl ? (
-                      <img 
+                      <Image 
                         src={banner.imageUrl} 
                         alt={banner.title}
                         className="h-16 w-24 object-cover rounded border"

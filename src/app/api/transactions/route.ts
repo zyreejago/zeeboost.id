@@ -119,7 +119,12 @@ export async function POST(request: NextRequest) {
     let user;
     try {
       console.log('Creating/finding user...');
-      const userData: any = {
+      // Ganti baris 122
+      const userData: {
+        robloxUsername: string;
+        robloxId: string;
+        email?: string;
+      } = {
         robloxUsername,
         robloxId: robloxId.toString()
       };
@@ -143,9 +148,9 @@ export async function POST(request: NextRequest) {
       });
       
       console.log('User created/found:', user.id);
-    } catch (userError: any) {
-      console.error('User creation error:', userError);
-      throw new Error(`Failed to create/find user: ${userError.message}`);
+    } catch (_error) {
+      console.error('User creation error:', _error);
+      throw new Error(`Failed to create/find user: ${(_error as Error).message}`);
     }
     
     // Create transaction
@@ -215,7 +220,7 @@ export async function POST(request: NextRequest) {
         }
       }
       
-    } catch (transactionError: any) {
+    } catch (transactionError: Error) {
       console.error('Transaction creation error:', transactionError);
       throw new Error(`Failed to create transaction: ${transactionError.message}`);
     }
@@ -238,20 +243,11 @@ export async function POST(request: NextRequest) {
     console.log('=== Transaction API Success ===');
     return NextResponse.json(response);
     
-  } catch (error: any) {
+  } catch (_error: any) {
     console.error('=== Transaction API Error ===');
     console.error('Error details:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
-    
-    return NextResponse.json(
-      { 
-        error: 'Failed to create transaction', 
-        details: error.message,
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    );
   }
 }
 
@@ -268,8 +264,8 @@ export async function GET() {
     });
     
     return NextResponse.json(transactions);
-  } catch (error) {
-    console.error('Get transactions error:', error);
+  } catch (_error) {
+    console._error('Get transactions error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch transactions' },
       { status: 500 }

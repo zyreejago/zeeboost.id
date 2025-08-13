@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     });
 
     return NextResponse.json(discount);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to update discount' },
       { status: 500 }
@@ -67,7 +67,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     });
 
     return NextResponse.json({ message: 'Discount berhasil dihapus' });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to delete discount' },
       { status: 500 }

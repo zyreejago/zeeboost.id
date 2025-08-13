@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update transaction di database
-    const updatedTransaction = await prisma.transaction.update({
+    const _updatedTransaction = await prisma.transaction.update({
       where: { id: parseInt(transactionId) },
       data: {
         status: newStatus,
@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
       newStatus: newStatus
     });
     
-  } catch (error) {
-    console.error('❌ Tripay webhook error:', error);
+  } catch (_error) {
+    console._error('❌ Tripay webhook error:', error);
     
     // Jika error parsing JSON atau database
     if (error instanceof SyntaxError) {

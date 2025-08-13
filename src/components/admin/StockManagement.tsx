@@ -55,7 +55,7 @@ export default function StockManagement({
       } else {
         alert('Gagal menyimpan stock!');
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Gagal menyimpan stock!');
     } finally {
       setIsLoading(false);
@@ -90,7 +90,7 @@ export default function StockManagement({
       } else {
         alert('Gagal menghapus stock!');
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Gagal menghapus stock!');
     } finally {
       setIsLoading(false);

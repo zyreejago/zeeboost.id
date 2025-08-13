@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-  } catch (error) {
-    console.error('Error checking Tripay status:', error);
+  } catch (_error) {
+    console._error('Error checking Tripay status:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengecek status' },
       { status: 500 }

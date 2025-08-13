@@ -84,7 +84,7 @@ const ChatCS = () => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (_error) {
       const errorMessage: Message = {
         id: Date.now() + 1,
         text: "Maaf, terjadi kesalahan koneksi. Silakan coba lagi.",

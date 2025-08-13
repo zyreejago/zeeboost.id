@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import SimpleFooter from '@/components/SimpleFooter';
 import ChatCS from '@/components/ChatCS';
+import Link from 'next/link';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -62,13 +63,13 @@ export default function Error({ error, reset }: ErrorProps) {
               <i className="fas fa-redo mr-2"></i>
               Coba Lagi
             </button>
-            <a
+            <Link
               href="/"
               className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
             >
               <i className="fas fa-home mr-2"></i>
               Kembali ke Beranda
-            </a>
+            </Link>
           </div>
           
           {/* Help Section */}

@@ -9,7 +9,7 @@ export async function GET() {
       orderBy: { amount: 'asc' },
     });
     return NextResponse.json(stocks);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to fetch robux stock' },
       { status: 500 }
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(stock);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Failed to create stock' }, { status: 500 });
   }
 }

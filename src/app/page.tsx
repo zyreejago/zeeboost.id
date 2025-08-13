@@ -5,21 +5,30 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Banner from '@/components/Banner';
 import Footer from '@/components/Footer';
+import Image from 'next/image';
 import ChatCS from '@/components/ChatCS';
 
+// Tambahkan interface ini di bagian atas file
 interface Transaction {
   id: number;
+  user?: {
+    robloxUsername?: string;
+  };
   robuxAmount: number;
   totalPrice: number;
   finalPrice?: number;
-  avatarUrl?: string; // Tambahkan field ini
-  method: string;
   status: string;
+  method: string;
   createdAt: string;
-  user: {
-    robloxUsername: string;
-    userId?: number;
-  };
+  avatarUrl?: string;
+}
+
+interface RobuxStockItem {
+  id: number;
+  amount: number;
+  isActive: boolean;
+  price: number;
+  name?: string;
 }
 
 interface RobuxInventory {
@@ -32,7 +41,7 @@ interface RobuxInventory {
 const faqData = [
   {
     question: "Bagaimana cara topup Robux di ZeeBoost?",
-    answer: "Sangat mudah! Pilih paket Robux, masukkan username Roblox Anda, pilih metode pembayaran, dan selesaikan transaksi. Robux akan langsung masuk ke akun Anda dalam 2-5 menit."
+    answer: "Sangat mudah! Pilih paket Robux, masukkan username Roblox Anda, pilih metode pembayaran, dan selesaikan transaksi."
   },
   {
     question: "Apakah ZeeBoost aman dan terpercaya?",
@@ -40,19 +49,19 @@ const faqData = [
   },
   {
     question: "Berapa lama proses pengiriman Robux?",
-    answer: "Robux biasanya masuk ke akun Anda dalam 2-5 menit setelah pembayaran berhasil. Sistem otomatis kami memastikan pengiriman yang cepat dan akurat."
+    answer: "Waktu pengiriman Robux bervariasi tergantung metode topup yang Anda pilih: Via Login (1-30 menit sesuai antrian) dan Gamepass (minimal 5 hari). Pastikan pembayaran sudah lengkap dan terverifikasi untuk proses yang lebih cepat."
   },
-  {
-    question: "Metode pembayaran apa saja yang tersedia?",
-    answer: "Kami menyediakan berbagai metode pembayaran seperti DANA, OVO, GoPay, Bank Transfer, dan Indomaret. Pilih yang paling nyaman untuk Anda."
-  },
+  // {
+  //   question: "Metode pembayaran apa saja yang tersedia?",
+  //   answer: "Kami menyediakan berbagai metode pembayaran seperti DANA, OVO, GoPay, Bank Transfer, dan Indomaret. Pilih yang paling nyaman untuk Anda."
+  // },
   {
     question: "Apakah ada customer service 24 jam?",
     answer: "Ya! Kami memiliki AI Customer Service yang siap membantu Anda 24/7. Tanyakan seputar Roblox, Robux, atau website kami kapan saja. Tim support kami juga tersedia untuk bantuan lebih lanjut."
   },
   {
     question: "Bagaimana jika Robux tidak masuk ke akun saya?",
-    answer: "Jangan khawatir! Hubungi customer service kami segera dengan menyertakan bukti pembayaran dan username Roblox. Kami akan segera memproses dan memastikan Robux masuk ke akun Anda."
+    answer: "Jangan khawatir! Hubungi customer service kami segera dengan menyertakan bukti pembayaran dan username Roblox melalui WhatsApp di +62 877-4051-7441. Kami akan segera memproses dan memastikan Robux masuk ke akun Anda."
   }
 ];
 
@@ -103,8 +112,8 @@ export default function Home() {
       
       // Fallback ke placeholder jika gagal (sama seperti di topup)
       return `https://via.placeholder.com/48x48/10b981/ffffff?text=${username.charAt(0).toUpperCase()}`;
-    } catch (error) {
-      console.error('Error fetching user avatar:', error);
+    } catch (_error) {
+      console._error('Error fetching user avatar:', error);
       return `https://via.placeholder.com/48x48/10b981/ffffff?text=${username.charAt(0).toUpperCase()}`;
     }
   };
@@ -155,8 +164,8 @@ export default function Home() {
       
       // Calculate total robux from all active variants
       const totalRobux = robuxData
-        .filter((item: any) => item.isActive)
-        .reduce((total: number, item: any) => total + item.amount, 0);
+        .filter((item: RobuxStockItem) => item.isActive)
+        .reduce((total: number, item: RobuxStockItem) => total + item.amount, 0);
       
       const inventory: RobuxInventory = {
         totalRobux,
@@ -166,14 +175,14 @@ export default function Home() {
       };
       setRobuxInventory(inventory);
       
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+    } catch (_error) {
+      console._error('Failed to fetch dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const _formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'short',
@@ -183,7 +192,7 @@ export default function Home() {
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const _getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { bg: 'bg-gradient-to-r from-yellow-400 to-orange-400', text: 'text-white', label: 'Pending' },
       completed: { bg: 'bg-gradient-to-r from-primary to-primary-dark', text: 'text-white', label: 'Selesai' },
@@ -199,7 +208,7 @@ export default function Home() {
     );
   };
 
-  const getStockStatus = (inventory: RobuxInventory) => {
+  const _getStockStatus = (inventory: RobuxInventory) => {
     if (inventory.totalRobux > 1000) {
       return { color: 'text-green-600', bg: 'bg-green-100', label: 'Stok Melimpah', icon: 'fas fa-check-circle' };
     } else if (inventory.totalRobux > 100) {
@@ -371,9 +380,9 @@ export default function Home() {
                         <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                           Harga
                         </th>
-                        <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        {/* <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                           Status
-                        </th>
+                        </th> */}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -383,9 +392,11 @@ export default function Home() {
                             <div className="flex items-center">
                               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-200 shadow-sm relative">
                                 {transaction.avatarUrl && !transaction.avatarUrl.includes('placeholder') ? (
-                                  <img 
+                                  <Image 
                                     src={transaction.avatarUrl} 
                                     alt={`${transaction.user.robloxUsername} avatar`}
+                                    width={48}
+                                    height={48}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
@@ -441,9 +452,9 @@ export default function Home() {
               Rp {(transaction.finalPrice || transaction.totalPrice).toLocaleString('id-ID')}
                             </div>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap">
+                          {/* <td className="px-8 py-6 whitespace-nowrap">
                             {getStatusBadge(transaction.status)}
-                          </td>
+                          </td> */}
                         </tr>
                       ))}
                     </tbody>

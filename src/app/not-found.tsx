@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import SimpleFooter from '@/components/SimpleFooter';
 import ChatCS from '@/components/ChatCS';
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -47,20 +48,13 @@ export default function NotFound() {
           
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <a
+            <Link
               href="/"
               className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
             >
               <i className="fas fa-home mr-2"></i>
               Kembali ke Beranda
-            </a>
-            {/* <a
-              href="/topup"
-              className="px-8 py-4 bg-white/80 backdrop-blur-sm text-gray-800 rounded-xl font-semibold hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl border border-white/50"
-            >
-              <i className="fas fa-coins mr-2"></i>
-              Topup Robux
-            </a> */}
+            </Link>
           </div>
           
           {/* Popular Links */}

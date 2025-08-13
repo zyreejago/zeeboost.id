@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    console.error('Error validating coupon:', error);
+  } catch (_error) {
+    console._error('Error validating coupon:', error);
     return NextResponse.json(
       { success: false, message: 'Gagal memvalidasi kupon' },
       { status: 500 }

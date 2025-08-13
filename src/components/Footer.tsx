@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
+
 
 export default function Footer() {
   return (
@@ -17,9 +19,11 @@ export default function Footer() {
           {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <img 
+              <Image 
                 src="/logo.png" 
                 alt="Logo" 
+                width={80}
+                height={80}
                 className="w-20 h-20 object-contain"
               />
             </div>

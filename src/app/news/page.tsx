@@ -55,8 +55,8 @@ async function getNews(page: number = 1) {
     }
     
     return await response.json();
-  } catch (error) {
-    console.error('Error fetching news:', error);
+  } catch (_error) {
+    console._error('Error fetching news:', error);
     return { news: [], total: 0, totalPages: 0 };
   }
 }

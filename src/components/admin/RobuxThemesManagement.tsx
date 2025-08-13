@@ -49,8 +49,8 @@ export default function RobuxThemesManagement() {
       if (data.canOrder !== undefined) {
         setCanOrder(data.canOrder === 'true');
       }
-    } catch (error) {
-      console.error('Error fetching settings:', error);
+    } catch (_error) {
+      console._error('Error fetching settings:', error);
     }
   };
 
@@ -78,8 +78,8 @@ export default function RobuxThemesManagement() {
       } else {
         alert('Gagal mengupdate pengaturan: ' + (data.error || 'Terjadi kesalahan'));
       }
-    } catch (error) {
-      console.error('Error updating settings:', error);
+    } catch (_error) {
+      console._error('Error updating settings:', error);
       alert('Gagal mengupdate pengaturan');
     } finally {
       setUpdatingSettings(false);
@@ -96,8 +96,8 @@ export default function RobuxThemesManagement() {
       } else {
         console.error('Error fetching themes:', data.message);
       }
-    } catch (error) {
-      console.error('Error fetching themes:', error);
+    } catch (_error) {
+      console._error('Error fetching themes:', error);
     } finally {
       setLoading(false);
     }
@@ -131,8 +131,8 @@ export default function RobuxThemesManagement() {
       } else {
         alert('Gagal menyimpan tema: ' + data.message);
       }
-    } catch (error) {
-      console.error('Error saving theme:', error);
+    } catch (_error) {
+      console._error('Error saving theme:', error);
       alert('Gagal menyimpan tema');
     }
   };
@@ -171,8 +171,8 @@ export default function RobuxThemesManagement() {
       } else {
         alert('Gagal mengubah status tema: ' + data.message);
       }
-    } catch (error) {
-      console.error('Error toggling theme status:', error);
+    } catch (_error) {
+      console._error('Error toggling theme status:', error);
       alert('Gagal mengubah status tema');
     }
   };

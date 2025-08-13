@@ -101,14 +101,14 @@ export default function ReportManagement({ transactions }: ReportManagementProps
 
   // Fungsi untuk membuat link gamepass
   const createGamepassLink = (transaction: Transaction): string | null => {
-    const gamepassId = extractGamepassId(transaction);
+    const _gamepassId = extractGamepassId(transaction);
     return gamepassId ? `https://www.roblox.com/id/game-pass/${gamepassId}` : null;
   };
 
   // Export ke Excel
   const exportToExcel = () => {
     const exportData = filteredTransactions.map(transaction => {
-      const gamepassId = extractGamepassId(transaction);
+      const _gamepassId = extractGamepassId(transaction);
       const gamepassLink = createGamepassLink(transaction);
       return {
         'ID Transaksi': transaction.id,
@@ -153,7 +153,7 @@ export default function ReportManagement({ transactions }: ReportManagementProps
     
     // Tabel data dengan field yang sama seperti Excel
     const tableData = filteredTransactions.map(transaction => {
-      const gamepassId = extractGamepassId(transaction);
+      const _gamepassId = extractGamepassId(transaction);
       const gamepassLink = createGamepassLink(transaction);
       return [
         transaction.id,

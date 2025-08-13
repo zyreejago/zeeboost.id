@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
+
 
 export default function SimpleFooter() {
   return (
@@ -9,23 +11,25 @@ export default function SimpleFooter() {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           {/* Logo & Brand */}
           <div className="flex items-center space-x-3">
-              <img 
-                src="/logo.png" 
-                alt="Logo" 
-                className="w-15 h-15 object-contain"
-              />
-            </div>
+            <Image 
+              src="/logo.png" 
+              alt="Logo" 
+              width={60}
+              height={60}
+              className="w-15 h-15 object-contain"
+            />
+          </div>
           
           {/* Quick Links */}
           <div className="flex items-center space-x-6 text-sm">
             <Link href="/" className="text-gray-600 hover:text-primary transition-colors">
               Beranda
             </Link>
-            <Link href="/cara-topup" className="text-gray-600 hover:text-primary transition-colors">
-              Cara Topup
+            <Link href="/gamepass-guide" className="text-gray-600 hover:text-primary transition-colors">
+              Tutorial Gampeass
             </Link>
-            <Link href="/kontak" className="text-gray-600 hover:text-primary transition-colors">
-              Kontak
+            <Link href="/backup-code-guide" className="text-gray-600 hover:text-primary transition-colors">
+              Tutorial Backup Code
             </Link>
           </div>
           

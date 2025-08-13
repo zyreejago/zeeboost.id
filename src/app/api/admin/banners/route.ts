@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(banners);
-  } catch (error) {
-    console.error('Error fetching banners:', error);
+  } catch (_error) {
+    console._error('Error fetching banners:', error);
     return NextResponse.json(
       { error: 'Failed to fetch banners' },
       { status: 500 }
@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, banner });
-  } catch (error) {
-    console.error('Error creating banner:', error);
+  } catch (_error) {
+    console._error('Error creating banner:', error);
     return NextResponse.json(
       { error: 'Failed to create banner' },
       { status: 500 }

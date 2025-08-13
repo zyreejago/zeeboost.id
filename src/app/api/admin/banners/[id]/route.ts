@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         }
       }
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         title,
         subtitle: subtitle || null,
         isActive,
@@ -99,8 +99,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
       return NextResponse.json({ success: true, banner });
     }
-  } catch (error) {
-    console.error('Error updating banner:', error);
+  } catch (_error) {
+    console.error('Error updating banner:', _error);
     return NextResponse.json(
       { error: 'Failed to update banner' },
       { status: 500 }
@@ -138,8 +138,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting banner:', error);
+  } catch (_error) {
+    console.error('Error deleting banner:', _error);
     return NextResponse.json(
       { error: 'Failed to delete banner' },
       { status: 500 }

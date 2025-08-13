@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  } catch (error) {
-    console.error('Tripay payment error:', error);
+  } catch (_error) {
+    console._error('Tripay payment error:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat membuat pembayaran', details: error.message },
       { status: 500 }

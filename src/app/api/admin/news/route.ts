@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json(news);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to fetch news' },
       { status: 500 }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(news);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to create news' },
       { status: 500 }

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
 
 interface Banner {
   id: number;
@@ -38,8 +40,8 @@ export default function BannerManagement() {
       const response = await fetch('/api/banners');
       const data = await response.json();
       setBanners(data);
-    } catch (error) {
-      console.error('Failed to fetch banners:', error);
+    } catch (_error) {
+      console.error('Failed to fetch banners:', _error);
     }
   };
 
@@ -67,7 +69,7 @@ export default function BannerManagement() {
         fetchBanners();
         alert(editingBanner ? 'Banner berhasil diupdate!' : 'Banner berhasil ditambahkan!');
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Gagal menyimpan banner!');
     } finally {
       setIsLoading(false);
@@ -98,7 +100,7 @@ export default function BannerManagement() {
         fetchBanners();
         alert('Banner berhasil dihapus!');
       }
-    } catch (error) {
+    } catch (_error) {
       alert('Gagal menghapus banner!');
     }
   };
@@ -229,7 +231,7 @@ export default function BannerManagement() {
                       Preview
                     </label>
                     <div className="border border-gray-300 rounded-lg p-4">
-                      <img
+                      <Image
                         src={bannerForm.imageUrl}
                         alt="Preview"
                         className="w-full h-32 object-cover rounded-lg"
@@ -303,9 +305,11 @@ export default function BannerManagement() {
               {banners.map((banner) => (
                 <div key={banner.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative">
-                    <img
+                    <Image
                       src={banner.imageUrl || 'https://via.placeholder.com/400x200/e5e7eb/6b7280?text=No+Image'}
                       alt={banner.title}
+                      width={400}
+                      height={200}
                       className="w-full h-48 object-cover"
                       onError={(e) => {
                         e.currentTarget.src = 'https://via.placeholder.com/400x200/e5e7eb/6b7280?text=Image+Error';

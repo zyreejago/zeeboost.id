@@ -48,8 +48,8 @@ export async function sendTelegramNotification(orderInfo: OrderInfo) {
       console.error('Failed to send Telegram notification:', result);
       return false;
     }
-  } catch (error) {
-    console.error('Error sending Telegram notification:', error);
+  } catch (_error) {
+    console._error('Error sending Telegram notification:', error);
     return false;
   }
 }

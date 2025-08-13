@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Cek apakah user memiliki gamepass dengan harga yang sesuai
     // Menggunakan logika: creator name harus sama dengan username dan harga harus tepat
-    const matchingGamepass = gamepassData.gamePasses && gamepassData.gamePasses.find((gamepass: any) => {
+    const matchingGamepass = gamepassData.gamePasses && gamepassData.gamePasses.find((gamepass: Gamepass) => {
       const creatorName = gamepass.creator?.name?.toLowerCase() || '';
       const gamepassPrice = gamepass.price;
       const isForSale = gamepass.isForSale;
@@ -125,11 +125,22 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    console.error('Error checking gamepass:', error);
+  } catch (_error) {
+    console.error('Error checking gamepass:', _error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengecek gamepass' },
       { status: 500 }
     );
   }
+}
+
+// Tambahkan interface ini di bagian atas file
+interface Gamepass {
+  creator?: {
+    name?: string;
+  };
+  price: number;
+  isForSale: boolean;
+  id?: number;
+  name?: string;
 }

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       success: true, 
       admin: adminAuth.admin 
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }

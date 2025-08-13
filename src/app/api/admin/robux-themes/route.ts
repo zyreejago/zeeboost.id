@@ -10,7 +10,7 @@ export async function GET() {
     });
     
     return NextResponse.json({ success: true, themes });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, message: 'Gagal mengambil data tema robux' },
       { status: 500 }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json({ success: true, theme });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, message: 'Gagal membuat tema robux' },
       { status: 500 }
@@ -64,7 +64,7 @@ export async function PUT(request: NextRequest) {
     });
     
     return NextResponse.json({ success: true, theme });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, message: 'Gagal mengupdate tema robux' },
       { status: 500 }

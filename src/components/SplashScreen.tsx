@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
+
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -26,10 +28,12 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
         <div className="animate-spin">
-          <img 
+          <Image 
             src="/logo.png" 
             alt="Loading..." 
-            className="w-32 h-32 object-contain"
+             width={32}
+          height={32}
+            className="object-contain"
           />
         </div>
       </div>
@@ -41,9 +45,11 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
       isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
     }`}>
       <div className="animate-spin">
-        <img 
+        <Image 
           src="/logo.png" 
           alt="Loading..." 
+          width={128}
+          height={128}
           className="w-32 h-32 object-contain"
         />
       </div>

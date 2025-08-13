@@ -31,7 +31,7 @@ export default function RobuxThemesPage() {
     isPremium: false,
     order: 0
   });
-  const router = useRouter();
+  const _router = useRouter();
 
   useEffect(() => {
     fetchThemes();
@@ -47,8 +47,8 @@ export default function RobuxThemesPage() {
       } else {
         alert('Gagal mengambil data tema: ' + data.message);
       }
-    } catch (error) {
-      console.error('Error fetching themes:', error);
+    } catch (_error) {
+      console._error('Error fetching themes:', error);
       alert('Gagal mengambil data tema');
     } finally {
       setLoading(false);
@@ -87,8 +87,8 @@ export default function RobuxThemesPage() {
       } else {
         alert('Gagal menyimpan tema: ' + data.message);
       }
-    } catch (error) {
-      console.error('Error saving theme:', error);
+    } catch (_error) {
+      console._error('Error saving theme:', error);
       alert('Gagal menyimpan tema');
     }
   };
@@ -127,8 +127,8 @@ export default function RobuxThemesPage() {
       } else {
         alert('Gagal mengubah status tema: ' + data.message);
       }
-    } catch (error) {
-      console.error('Error toggling theme status:', error);
+    } catch (_error) {
+      console._error('Error toggling theme status:', error);
       alert('Gagal mengubah status tema');
     }
   };

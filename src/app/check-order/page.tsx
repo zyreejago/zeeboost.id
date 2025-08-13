@@ -8,7 +8,8 @@ import Footer from '@/components/Footer';
 interface Transaction {
   id: number;
   robuxAmount: number;
-  totalPrice: number;
+  // totalPrice: number;
+  // finalPrice?: number;
   method: string;
   status: string;
   createdAt: string;
@@ -62,8 +63,8 @@ export default function CheckOrderPage() {
         setError(data.error || 'Terjadi kesalahan saat mengecek pesanan');
         setHasSearched(true);
       }
-    } catch (error) {
-      console.error('Error checking order:', error);
+    } catch (_error) {
+      console._error('Error checking order:', error);
       setError('Terjadi kesalahan koneksi');
       setHasSearched(true);
     } finally {
@@ -100,7 +101,7 @@ export default function CheckOrderPage() {
     });
   };
 
-  const formatPrice = (price: number) => {
+  const _formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
@@ -230,12 +231,15 @@ export default function CheckOrderPage() {
                       </p>
                     </div>
                     
-                    <div>
+                    {/* <div>
                       <p className="text-sm text-gray-500 mb-1">Total Harga</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {formatPrice(transaction.totalPrice)}
+                        {transaction.finalPrice ? 
+                          formatPrice(transaction.finalPrice) : 
+                          formatPrice(transaction.totalPrice)
+                        }
                       </p>
-                    </div>
+                    </div> */}
                     
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Metode</p>

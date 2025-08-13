@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import RobuxSlider from '@/components/RobuxSlider';
+import Image from 'next/image';
+
 
 interface RobloxUser {
   id: string;
@@ -114,8 +116,8 @@ export default function ViaLoginTopup() {
       const data = await response.json();
       // Konversi string 'true'/'false' ke boolean
       setCanOrder(data.canOrder === 'true');
-    } catch (error) {
-      console.error('Error fetching settings:', error);
+    } catch (_error) {
+      console._error('Error fetching settings:', error);
     }
   };
   
@@ -136,8 +138,8 @@ export default function ViaLoginTopup() {
         ];
         setRobuxOptions(defaultOptions);
       }
-    } catch (error) {
-      console.error('Error fetching robux options:', error);
+    } catch (_error) {
+      console._error('Error fetching robux options:', error);
       // Fallback ke data default
       const defaultOptions: RobuxOption[] = [
         { id: 1, name: 'Paket Hemat', robuxAmount: 100, price: 15000, themeType: 'small', isPremium: false, order: 1 },
@@ -199,8 +201,8 @@ export default function ViaLoginTopup() {
       }
       
       setHasSearched(true);
-    } catch (error) {
-      console.error('Error validating username:', error);
+    } catch (_error) {
+      console._error('Error validating username:', error);
       setRobloxUser(null);
       setHasSearched(true);
     } finally {
@@ -225,8 +227,8 @@ export default function ViaLoginTopup() {
         setCouponData(null);
         setCouponError(data.message || 'Kode kupon tidak valid');
       }
-    } catch (error) {
-      console.error('Error validating coupon:', error);
+    } catch (_error) {
+      console._error('Error validating coupon:', error);
       setCouponError('Gagal memvalidasi kupon');
     } finally {
       setIsValidatingCoupon(false);
@@ -381,8 +383,8 @@ export default function ViaLoginTopup() {
       } else {
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
-    } catch (error) {
-      console.error('Error creating transaction:', error);
+    } catch (_error) {
+      console._error('Error creating transaction:', error);
       showNotification('Error', 'Terjadi kesalahan!', 'error');
     } finally {
       setIsLoading(false);
@@ -443,9 +445,11 @@ export default function ViaLoginTopup() {
           {robloxUser && (
             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-3">
-                <img 
+                <Image 
                   src={robloxUser.avatarUrl} 
                   alt={robloxUser.username}
+                  width={48}
+                  height={48}
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-green-300"
                 />
                 <div className="flex-1 min-w-0">
