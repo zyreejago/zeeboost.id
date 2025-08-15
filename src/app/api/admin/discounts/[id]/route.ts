@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Discount } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 
 // PUT - Update discount
@@ -14,33 +14,25 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { code, name, description, type, value, maxUses, minPurchase, isActive, validUntil } = await request.json();
 
     // Validasi kode discount unik (kecuali untuk discount yang sedang diedit)
-    const existingDiscount = await prisma.discount.findFirst({
-      where: {
-        code,
-        NOT: { id: discountId }
-      }
-    });
+    const existingDiscount = await Discount.findByCode(code);
 
-    if (existingDiscount) {
+    if (existingDiscount && existingDiscount.id !== discountId) {
       return NextResponse.json(
         { error: 'Kode discount sudah digunakan' },
         { status: 400 }
       );
     }
 
-    const discount = await prisma.discount.update({
-      where: { id: discountId },
-      data: {
-        code,
-        name,
-        description,
-        type,
-        value,
-        maxUses,
-        minPurchase,
-        isActive,
-        validUntil: validUntil ? new Date(validUntil) : null,
-      },
+    const discount = await Discount.update(discountId, {
+      code,
+      name,
+      description,
+      type,
+      value,
+      maxUses,
+      minPurchase,
+      isActive,
+      validUntil: validUntil ? new Date(validUntil) : null,
     });
 
     return NextResponse.json(discount);
@@ -62,9 +54,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     const discountId = parseInt(params.id);
     
-    await prisma.discount.delete({
-      where: { id: discountId },
-    });
+    await Discount.delete(discountId);
 
     return NextResponse.json({ message: 'Discount berhasil dihapus' });
   } catch (_error) {

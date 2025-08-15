@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { RobuxStock } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 
 // GET - Ambil semua stock robux
 export async function GET() {
   try {
-    const stocks = await prisma.robuxStock.findMany({
-      orderBy: { amount: 'asc' },
-    });
+    const stocks = await RobuxStock.getAll();
     return NextResponse.json(stocks);
   } catch (_error) {
     return NextResponse.json(
@@ -27,13 +25,11 @@ export async function POST(request: Request) {
 
     const { amount, price, isActive, allowOrders } = await request.json();
 
-    const stock = await prisma.robuxStock.create({
-      data: {
-        amount,
-        price,
-        isActive,
-        allowOrders: allowOrders ?? true // default true jika tidak ada
-      }
+    const stock = await RobuxStock.create({
+      amount,
+      price,
+      isActive,
+      allowOrders: allowOrders ?? true // default true jika tidak ada
     });
 
     return NextResponse.json(stock);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { News } from '@/lib/models';
 
 // GET - Ambil detail news berdasarkan ID
 export async function GET(
@@ -9,30 +9,27 @@ export async function GET(
   try {
     const newsId = parseInt(params.id);
     
-    const news = await prisma.news.findFirst({
-      where: {
-        id: newsId,
-        isPublished: true,
-      },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        excerpt: true,
-        imageUrl: true,
-        publishedAt: true,
-        createdAt: true,
-      },
-    });
+    const news = await News.findById(newsId);
 
-    if (!news) {
+    if (!news || !news.isPublished) {
       return NextResponse.json(
         { error: 'News not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(news);
+    // Pilih field yang diperlukan
+    const newsData = {
+      id: news.id,
+      title: news.title,
+      content: news.content,
+      excerpt: news.excerpt,
+      imageUrl: news.imageUrl,
+      publishedAt: news.publishedAt,
+      createdAt: news.createdAt,
+    };
+
+    return NextResponse.json(newsData);
   } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to fetch news' },

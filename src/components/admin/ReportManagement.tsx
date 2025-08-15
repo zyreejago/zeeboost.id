@@ -102,7 +102,7 @@ export default function ReportManagement({ transactions }: ReportManagementProps
   // Fungsi untuk membuat link gamepass
   const createGamepassLink = (transaction: Transaction): string | null => {
     const _gamepassId = extractGamepassId(transaction);
-    return gamepassId ? `https://www.roblox.com/id/game-pass/${gamepassId}` : null;
+    return _gamepassId ? `https://www.roblox.com/id/game-pass/${_gamepassId}` : null;
   };
 
   // Export ke Excel

@@ -38,7 +38,7 @@ export default function Footer() {
               <h4 className="text-lg font-semibold mb-4">Ikuti Kami</h4>
               <div className="flex space-x-4">
                 <a 
-                  href="https://instagram.com/zeeboost.com" 
+                  href="https://instagram.com/zeeboost.id" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group w-12 h-12 bg-gray-800 hover:bg-primary rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg"

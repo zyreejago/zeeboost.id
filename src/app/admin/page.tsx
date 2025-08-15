@@ -65,7 +65,7 @@ export default function AdminDashboard() {
             banners={banners}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
-            fetchData={fetchData}
+            onRefresh={fetchData}
           />
         );
       case 'news':
@@ -74,16 +74,14 @@ export default function AdminDashboard() {
             news={news}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
-            fetchData={fetchData}
+            onRefresh={fetchData} // Ubah dari fetchData menjadi onRefresh
           />
         );
       case 'discounts':
         return (
           <DiscountManagement 
             discounts={discounts}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            fetchData={fetchData}
+            onRefresh={fetchData}
           />
         );
       case 'reports':

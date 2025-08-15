@@ -43,7 +43,7 @@ export default function DiscountManagement({ discounts, onRefresh }: DiscountMan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
       const url = isEditing ? `/api/admin/discounts/${editingId}` : '/api/admin/discounts';
       const method = isEditing ? 'PUT' : 'POST';
@@ -52,13 +52,14 @@ export default function DiscountManagement({ discounts, onRefresh }: DiscountMan
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify({
           ...formData,
           validUntil: formData.validUntil || null
         }),
       });
-
+  
       if (response.ok) {
         resetForm();
         onRefresh();
@@ -66,7 +67,7 @@ export default function DiscountManagement({ discounts, onRefresh }: DiscountMan
         alert('Gagal menyimpan discount');
       }
     } catch (_error) {
-      console._error('Error:', error);
+      console.error('Error:', _error);
       alert('Terjadi kesalahan');
     } finally {
       setIsLoading(false);
@@ -96,15 +97,18 @@ export default function DiscountManagement({ discounts, onRefresh }: DiscountMan
     try {
       const response = await fetch(`/api/admin/discounts/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
       });
-
+  
       if (response.ok) {
         onRefresh();
       } else {
         alert('Gagal menghapus discount');
       }
     } catch (_error) {
-      console._error('Error:', error);
+      console.error('Error:', _error);
       alert('Terjadi kesalahan');
     } finally {
       setIsLoading(false);

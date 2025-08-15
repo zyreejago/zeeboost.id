@@ -28,7 +28,8 @@ export async function verifyAdminToken(request: NextRequest) {
         role: decoded.role,
       },
     };
-  } catch (_error) {
+  } catch (error) {
+    console.error('Token verification error:', error);
     return { success: false, error: 'Invalid token' };
   }
 }

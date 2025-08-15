@@ -34,7 +34,7 @@ function PaymentSuccessContent() {
           const data = await response.json();
           setTransaction(data.transaction); // Akses data.transaction
         } catch (_error) {
-          console._error('Error fetching transaction:', error);
+          console.error('Error fetching transaction:', error);
         } finally {
           setLoading(false);
         }

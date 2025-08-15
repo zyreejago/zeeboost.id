@@ -36,7 +36,7 @@ export default function Banner() {
       const data = await response.json();
       setBanners(data.filter((banner: BannerData) => banner.isActive));
     } catch (_error) {
-      console._error('Failed to fetch banners:', error);
+      console.error('Failed to fetch banners:', error);
     } finally {
       setIsLoading(false);
     }

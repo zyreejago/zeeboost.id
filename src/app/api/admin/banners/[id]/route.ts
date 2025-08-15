@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Banner } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const adminData = await verifyAdminToken(request);
     if (!adminData) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const bannerId = parseInt(params.id);
+    const resolvedParams = await params;
+    const bannerId = parseInt(resolvedParams.id);
     const contentType = request.headers.get('content-type');
     
     // Check if it's FormData (with file upload) or JSON (status toggle)
@@ -29,9 +30,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       // If new image is uploaded
       if (imageFile && imageFile.size > 0) {
         // Get current banner to delete old image
-        const currentBanner = await prisma.banner.findUnique({
-          where: { id: bannerId }
-        });
+        const currentBanner = await Banner.findById(bannerId);
         
         // Generate unique filename
         const timestamp = Date.now();
@@ -76,31 +75,24 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         updateData.imageUrl = imageUrl;
       }
 
-      const banner = await prisma.banner.update({
-        where: { id: bannerId },
-        data: updateData,
-      });
+      const banner = await Banner.update(bannerId, updateData);
 
       return NextResponse.json({ success: true, banner });
     } else {
       // Handle JSON request (status toggle)
       const { title, subtitle, imageUrl, isActive, order } = await request.json();
       
-      const banner = await prisma.banner.update({
-        where: { id: bannerId },
-        data: {
-          title,
-          subtitle,
-          imageUrl,
-          isActive,
-          order,
-        },
+      const banner = await Banner.update(bannerId, {
+        title,
+        subtitle,
+        imageUrl,
+        isActive,
+        order,
       });
 
       return NextResponse.json({ success: true, banner });
     }
   } catch (_error) {
-    console.error('Error updating banner:', _error);
     return NextResponse.json(
       { error: 'Failed to update banner' },
       { status: 500 }
@@ -108,27 +100,25 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const adminData = await verifyAdminToken(request);
     if (!adminData) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const bannerId = parseInt(params.id);
+    const resolvedParams = await params;
+    const bannerId = parseInt(resolvedParams.id);
     
     // Get banner to delete image file
-    const banner = await prisma.banner.findUnique({
-      where: { id: bannerId }
-    });
+    const banner = await Banner.findById(bannerId);
     
-    // Delete banner from database
-    await prisma.banner.delete({
-      where: { id: bannerId },
-    });
+    if (!banner) {
+      return NextResponse.json({ error: 'Banner not found' }, { status: 404 });
+    }
     
     // Delete image file if exists
-    if (banner?.imageUrl && banner.imageUrl.startsWith('/uploads/')) {
+    if (banner.imageUrl && banner.imageUrl.startsWith('/uploads/')) {
       try {
         const filePath = join(process.cwd(), 'public', banner.imageUrl);
         await unlink(filePath);
@@ -136,10 +126,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         console.log('Could not delete image file:', deleteError);
       }
     }
+    
+    await Banner.delete(bannerId);
 
     return NextResponse.json({ success: true });
   } catch (_error) {
-    console.error('Error deleting banner:', _error);
     return NextResponse.json(
       { error: 'Failed to delete banner' },
       { status: 500 }

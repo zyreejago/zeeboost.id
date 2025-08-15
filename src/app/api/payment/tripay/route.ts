@@ -1,106 +1,132 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Transaction, User } from '@/lib/models';
 import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
 
-const TRIPAY_API_KEY = 'DEV-u12iianpoxG2rYzosjnMypHS6fTRIYH7dJbQ9fbj';
-const TRIPAY_PRIVATE_KEY = 'yEI0o-BzLEv-Cf7xV-hUH7Q-Oom7t';
-const TRIPAY_MERCHANT_CODE = 'T44133';
-const TRIPAY_BASE_URL = 'https://tripay.co.id/api-sandbox';
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const requestBody = await request.json();
-    console.log('=== Tripay Payment API Called ===');
-    console.log('Request body:', requestBody);
+    const { transactionId, amount, customerName, customerEmail, customerPhone, paymentMethod } = await request.json();
     
-    const { transactionId, amount, customerName, customerEmail, customerPhone, paymentMethod = 'QRIS' } = requestBody;
-    
-    console.log('Extracted data:', {
-      transactionId,
-      amount,
-      customerName,
-      customerEmail,
-      customerPhone,
-      paymentMethod // Tambahkan ini untuk logging
-    });
-    
-    if (!transactionId || !amount || !customerName || !customerEmail) {
-      console.log('Validation failed:', {
-        transactionId: !!transactionId,
-        amount: !!amount,
-        customerName: !!customerName,
-        customerEmail: !!customerEmail
-      });
+    // Validasi input
+    if (!transactionId || !paymentMethod) {
       return NextResponse.json(
-        { error: 'Data yang diperlukan tidak lengkap', received: requestBody },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
-
-    const merchantRef = `ZB-${transactionId}-${Date.now()}`;
     
-    const signature = crypto
-      .createHmac('sha256', TRIPAY_PRIVATE_KEY)
-      .update(TRIPAY_MERCHANT_CODE + merchantRef + amount)
-      .digest('hex');
-
-    const tripayData = {
-      method: paymentMethod, // Gunakan metode pembayaran yang dipilih user
-      merchant_ref: merchantRef,
-      amount: amount,
-      customer_name: customerName,
-      customer_email: customerEmail,
-      customer_phone: customerPhone || '',
-      order_items: [{
-        sku: `ROBUX-${transactionId}`,
-        name: 'Top Up Robux ZeeBoost',
-        price: amount,
-        quantity: 1
-      }],
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`,
-      expired_time: Math.floor(Date.now() / 1000) + (24 * 60 * 60),
-      signature: signature
-    };
-
-    console.log('Sending to Tripay:', tripayData);
-
-    const response = await fetch(`${TRIPAY_BASE_URL}/transaction/create`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${TRIPAY_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(tripayData)
-    });
-
-    const tripayResponse = await response.json();
-
-    if (tripayResponse.success) {
-      await prisma.transaction.update({
-        where: { id: parseInt(transactionId) },
-        data: {
-          paymentProof: tripayResponse.data.reference,
-          status: 'pending' // Ubah dari 'processing' ke 'pending'
-        }
+    // Ambil data transaksi
+    const transaction = await Transaction.findById(transactionId);
+    
+    if (!transaction) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    }
+    
+    // Pastikan variabel lingkungan tersedia
+    const apiKey = process.env.TRIPAY_API_KEY;
+    const privateKey = process.env.TRIPAY_PRIVATE_KEY;
+    const merchantCode = process.env.TRIPAY_MERCHANT_CODE;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    
+    if (!apiKey || !privateKey || !merchantCode || !baseUrl) {
+      console.error('Missing environment variables:', { 
+        apiKey: !!apiKey, 
+        privateKey: !!privateKey, 
+        merchantCode: !!merchantCode, 
+        baseUrl: !!baseUrl 
       });
-
-      return NextResponse.json({
-        success: true,
-        paymentUrl: tripayResponse.data.checkout_url,
-        reference: tripayResponse.data.reference,
-        qrCode: tripayResponse.data.qr_url
-      });
-    } else {
       return NextResponse.json(
-        { error: 'Gagal membuat pembayaran', details: tripayResponse.message },
-        { status: 400 }
+        { error: 'Server configuration error' },
+        { status: 500 }
       );
     }
-
+    
+    // Implementasi integrasi dengan Tripay
+    try {
+      // Generate signature
+      const signatureString = merchantCode + transactionId + amount;
+      const signature = crypto.createHmac('sha256', privateKey)
+        .update(signatureString)
+        .digest('hex');
+      
+      // Create the request payload
+      const requestPayload = {
+        method: paymentMethod,
+        merchant_ref: transactionId,
+        amount: amount,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        order_items: [{
+          name: `Robux ${transaction.robuxAmount}`,
+          price: amount,
+          quantity: 1
+        }],
+        callback_url: `${baseUrl}/api/webhook/tripay`,
+        return_url: `${baseUrl}/payment/success?id=${transactionId}`,
+        signature: signature
+      };
+      
+      // Add debugging
+      console.log('Tripay Request Payload:', JSON.stringify(requestPayload, null, 2));
+      
+      // Make the API call with the payload
+      const tripayResponse = await fetch('https://tripay.co.id/api/transaction/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestPayload)
+      });
+      
+      // Add better error handling
+      if (!tripayResponse.ok) {
+        const errorText = await tripayResponse.text();
+        console.error('Tripay API Error:', {
+          status: tripayResponse.status,
+          statusText: tripayResponse.statusText,
+          response: errorText
+        });
+        throw new Error(`Tripay API returned ${tripayResponse.status}: ${tripayResponse.statusText}`);
+      }
+      
+      // Check content type before parsing JSON
+      const contentType = tripayResponse.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await tripayResponse.text();
+        console.error('Non-JSON response from Tripay:', responseText);
+        throw new Error('Tripay API returned non-JSON response');
+      }
+      
+      const tripayData = await tripayResponse.json();
+      
+      if (tripayData.success) {
+        // Update transaction dengan reference dari Tripay
+        await Transaction.update(transactionId, {
+          paymentReference: tripayData.data.reference
+          // Removed paymentUrl since it doesn't exist in the schema
+        });
+        
+        return NextResponse.json({
+          success: true,
+          paymentUrl: tripayData.data.checkout_url,
+          transaction: {
+            ...transaction,
+            paymentReference: tripayData.data.reference,
+            paymentUrl: tripayData.data.checkout_url
+          }
+        });
+      } else {
+        throw new Error(tripayData.message || 'Failed to create payment');
+      }
+    } catch (tripayError) {
+      console.error('Tripay integration error:', tripayError);
+      throw new Error(`Tripay integration failed: ${(tripayError as Error).message}`);
+    }
   } catch (_error) {
-    console._error('Tripay payment error:', error);
+    console.error('Payment API error:', _error);
     return NextResponse.json(
-      { error: 'Terjadi kesalahan saat membuat pembayaran', details: error.message },
+      { error: 'Failed to create payment' },
       { status: 500 }
     );
   }

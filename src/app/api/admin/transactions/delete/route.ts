@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Transaction } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
-import { Prisma } from '@prisma/client';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -16,25 +15,21 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid transaction IDs' }, { status: 400 });
     }
 
-    const whereCondition: Prisma.TransactionWhereInput = {
-      id: { in: transactionIds }
-    };
+    let conditions: any = { ids: transactionIds };
 
     // Hanya izinkan hapus transaksi pending dan failed
     if (deleteType === 'pending') {
-      whereCondition.status = 'pending';
+      conditions.status = 'pending';
     } else if (deleteType === 'failed') {
-      whereCondition.status = 'failed';
+      conditions.status = 'failed';
     } else if (deleteType === 'pending_failed') {
-      whereCondition.status = { in: ['pending', 'failed'] };
+      conditions.status = ['pending', 'failed'];
     } else {
       // Default: hanya pending dan failed
-      whereCondition.status = { in: ['pending', 'failed'] };
+      conditions.status = ['pending', 'failed'];
     }
 
-    const deletedTransactions = await prisma.transaction.deleteMany({
-      where: whereCondition
-    });
+    const deletedTransactions = await Transaction.deleteMany(conditions);
 
     return NextResponse.json({
       success: true,

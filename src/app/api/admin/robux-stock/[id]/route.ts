@@ -1,31 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { RobuxStock } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 
-// DELETE - Hapus stock robux berdasarkan ID
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+// GET - Ambil stock robux berdasarkan ID
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const adminAuth = await verifyAdminToken(request);
     if (!adminAuth.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const id = parseInt(params.id);
-    
-    await prisma.robuxStock.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ message: 'Stock berhasil dihapus' });
+    const stock = await RobuxStock.findById(params.id);
+    if (!stock) {
+      return NextResponse.json({ error: 'Stock not found' }, { status: 404 });
+    }
+    return NextResponse.json(stock);
   } catch (_error) {
     return NextResponse.json(
-      { error: 'Failed to delete robux stock' },
+      { error: 'Failed to fetch stock' },
       { status: 500 }
     );
   }
 }
 
-// PUT - Update stock robux berdasarkan ID
+// PUT - Update stock robux
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const adminAuth = await verifyAdminToken(request);
@@ -33,24 +31,27 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { amount, price, isActive, allowOrders } = await request.json(); // Tambahkan allowOrders
-    const id = parseInt(params.id);
+    const stockData = await request.json();
+    const updatedStock = await RobuxStock.update(params.id, stockData);
 
-    const robuxStock = await prisma.robuxStock.update({
-      where: { id },
-      data: { 
-        amount, 
-        price, 
-        isActive, 
-        allowOrders: allowOrders ?? true // Default true jika tidak ada
-      },
-    });
-
-    return NextResponse.json(robuxStock);
+    return NextResponse.json(updatedStock);
   } catch (_error) {
-    return NextResponse.json(
-      { error: 'Failed to update robux stock' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update stock' }, { status: 500 });
+  }
+}
+
+// DELETE - Hapus stock robux
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { isValid } = await verifyAdminToken();
+    if (!isValid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await RobuxStock.delete(params.id);
+
+    return NextResponse.json({ success: true });
+  } catch (_error) {
+    return NextResponse.json({ error: 'Failed to delete stock' }, { status: 500 });
   }
 }

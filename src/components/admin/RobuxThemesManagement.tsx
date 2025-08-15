@@ -50,7 +50,7 @@ export default function RobuxThemesManagement() {
         setCanOrder(data.canOrder === 'true');
       }
     } catch (_error) {
-      console._error('Error fetching settings:', error);
+      console.error('Error fetching settings:',_error);
     }
   };
 
@@ -79,7 +79,7 @@ export default function RobuxThemesManagement() {
         alert('Gagal mengupdate pengaturan: ' + (data.error || 'Terjadi kesalahan'));
       }
     } catch (_error) {
-      console._error('Error updating settings:', error);
+      console.error('Error updating settings:', _error);
       alert('Gagal mengupdate pengaturan');
     } finally {
       setUpdatingSettings(false);
@@ -91,13 +91,15 @@ export default function RobuxThemesManagement() {
       const response = await fetch('/api/admin/robux-themes');
       const data = await response.json();
       
-      if (data.success) {
+      if (Array.isArray(data)) {
+        setThemes(data);
+      } else if (data.success) {
         setThemes(data.themes);
       } else {
-        console.error('Error fetching themes:', data.message);
+        console.error('Error fetching themes:', data.message || data.error);
       }
-    } catch (_error) {
-      console._error('Error fetching themes:', error);
+    } catch (error) {
+      console.error('Error fetching themes:', error);
     } finally {
       setLoading(false);
     }
@@ -132,7 +134,7 @@ export default function RobuxThemesManagement() {
         alert('Gagal menyimpan tema: ' + data.message);
       }
     } catch (_error) {
-      console._error('Error saving theme:', error);
+      console.error('Error saving theme:', _error);
       alert('Gagal menyimpan tema');
     }
   };
@@ -172,7 +174,7 @@ export default function RobuxThemesManagement() {
         alert('Gagal mengubah status tema: ' + data.message);
       }
     } catch (_error) {
-      console._error('Error toggling theme status:', error);
+      console.error('Error toggling theme status:', _error);
       alert('Gagal mengubah status tema');
     }
   };
@@ -195,6 +197,30 @@ export default function RobuxThemesManagement() {
       currency: 'IDR',
       minimumFractionDigits: 0
     }).format(amount);
+  };
+
+  const handleDelete = async (theme: RobuxTheme) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus tema "${theme.name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/robux-themes?id=${theme.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Tema berhasil dihapus!');
+        fetchThemes();
+      } else {
+        alert('Gagal menghapus tema: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting theme:', error);
+      alert('Gagal menghapus tema');
+    }
   };
 
   if (loading) {
@@ -328,6 +354,7 @@ export default function RobuxThemesManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {theme.order}
                   </td>
+                  {/* // Di bagian tabel, update kolom Aksi: */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={() => handleEdit(theme)}
@@ -335,6 +362,13 @@ export default function RobuxThemesManagement() {
                     >
                       <i className="fas fa-edit mr-1"></i>
                       Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(theme)}
+                      className="text-red-600 hover:text-red-900 transition-colors"
+                    >
+                      <i className="fas fa-trash mr-1"></i>
+                      Hapus
                     </button>
                   </td>
                 </tr>

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (_error) {
-    console._error('Error validating username:', error);
+    console.error('Error validating username:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

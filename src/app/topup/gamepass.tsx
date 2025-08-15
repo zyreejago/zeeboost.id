@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import RobuxSlider from '@/components/RobuxSlider';
 import Image from 'next/image';
+import ReCaptcha from '@/components/ReCaptcha';
 
 
 interface RobuxStockItem {
@@ -67,6 +68,8 @@ export default function GamepassTopup() {
   
   // Tambahkan state untuk metode pembayaran
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
+  const [paymentChannels, setPaymentChannels] = useState<any[]>([]);
+  const [loadingChannels, setLoadingChannels] = useState(true);
   
   // Tambahkan state untuk robux stock
   const [robuxStock, setRobuxStock] = useState<RobuxStockItem[]>([]);
@@ -96,8 +99,14 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
     totalPrice?: number;
   }>({} as any);
   
+  // Tambahkan state untuk reCAPTCHA
+  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
+  const [recaptchaError, setRecaptchaError] = useState<string>('');
+  const recaptchaRef = useRef<any>(null);
+  
   useEffect(() => {
     fetchSettings();
+    fetchPaymentChannels();
   }, []);
   
   // Auto-validate username when typing
@@ -155,6 +164,22 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
     setShowConfirmModal(true);
   };
   
+  // Fungsi untuk handle reCAPTCHA
+  const handleRecaptchaVerify = (token: string) => {
+    setRecaptchaToken(token);
+    setRecaptchaError('');
+  };
+
+  const handleRecaptchaExpired = () => {
+    setRecaptchaToken('');
+    setRecaptchaError('reCAPTCHA expired. Please verify again.');
+  };
+
+  const handleRecaptchaError = () => {
+    setRecaptchaToken('');
+    setRecaptchaError('reCAPTCHA error. Please try again.');
+  };
+  
   const fetchSettings = async () => {
     try {
       const response = await fetch('/api/robux-stock');
@@ -166,11 +191,48 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setRobuxPrice(pricePerHundred);
       }
     } catch (_error) {
-      console._error('Failed to fetch robux price:', error);
+      console.error('Failed to fetch robux price:', _error);
       // Fallback ke harga default jika gagal
       setRobuxPrice(0);
     }
   };
+  
+  const fetchPaymentChannels = async () => {
+    try {
+      setLoadingChannels(true);
+      const response = await fetch('/api/tripay/channels');
+      const data = await response.json();
+      
+      if (data.success) {
+        setPaymentChannels(data.channels);
+        // Set default payment method ke channel pertama yang aktif
+        if (data.channels.length > 0) {
+          setPaymentMethod(data.channels[0].code);
+        }
+      } else {
+        console.error('Failed to fetch payment channels:', data.error);
+        // Fallback ke channels default jika API gagal
+        setPaymentChannels(getDefaultChannels());
+      }
+    } catch (error) {
+      console.error('Error fetching payment channels:', error);
+      // Fallback ke channels default
+      setPaymentChannels(getDefaultChannels());
+    } finally {
+      setLoadingChannels(false);
+    }
+  };
+  
+  const getDefaultChannels = () => [
+    { code: 'QRIS', name: 'QRIS (Semua E-Wallet)', active: true },
+    { code: 'BRIVA', name: 'BRI Virtual Account', active: true },
+    { code: 'BNIVA', name: 'BNI Virtual Account', active: true },
+    { code: 'BSIVA', name: 'BSI Virtual Account', active: true },
+    { code: 'MANDIRIVA', name: 'Mandiri Virtual Account', active: true },
+    { code: 'PERMATAVA', name: 'Permata Virtual Account', active: true },
+    { code: 'ALFAMART', name: 'Alfamart', active: true },
+    { code: 'INDOMARET', name: 'Indomaret', active: true }
+  ];
   
   // Tambahkan pengecekan allowOrders
   const canOrder = robuxStock.some(stock => stock.isActive && stock.allowOrders);
@@ -224,7 +286,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setRobloxUser(null);
       }
     } catch (_error) {
-      console._error('Error validating username:', error);
+      console.error('Error validating username:', _error);
       setRobloxUser(null);
     } finally {
       setIsValidating(false);
@@ -253,7 +315,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setCouponError(data.message || 'Kode kupon tidak valid');
       }
     } catch (_error) {
-      console._error('Error validating coupon:', error);
+      console.error('Error validating coupon:', _error);
       setCouponData(null);
       setCouponError('Gagal memvalidasi kupon');
     } finally {
@@ -322,7 +384,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setGamepassVerified(false);
       }
     } catch (_error) {
-      console._error('Error checking gamepass:', error);
+      console.error('Error checking gamepass:', _error);
       showNotification('Error', 'Gagal memverifikasi gamepass!', 'error');
       setGamepassVerified(false);
     } finally {
@@ -351,10 +413,11 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         finalPrice: calculatePrice(),
         gamepassPrice: requiredGamepassPrice,
         gamepassVerified: true, // LANGSUNG SET TRUE
-        gamepassId: gamepassId.toString() // LANGSUNG GUNAKAN PARAMETER
+        gamepassId: gamepassId.toString(), // LANGSUNG GUNAKAN PARAMETER
+        recaptchaToken // Tambahkan token reCAPTCHA
       };
       
-      console.log('=== Sending transaction data with gamepass ===', transactionData);
+      // console.log('=== Sending transaction data with gamepass ===', transactionData);
       
       const response = await fetch('/api/transactions', {
         method: 'POST',
@@ -362,9 +425,21 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         body: JSON.stringify(transactionData),
       });
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Transaction API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        showNotification('Error', `Gagal membuat transaksi: ${errorData.error || 'Unknown error'}`, 'error');
+        setIsLoading(false);
+        return;
+      }
+      
       const transaction = await response.json();
       
-      if (response.ok) {
+      if (true) {
         // Lanjutkan dengan pembayaran Tripay seperti biasa
         const paymentData = {
           transactionId: transaction.id,
@@ -384,8 +459,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         const paymentResult = await paymentResponse.json();
         
         if (paymentResult.success) {
-          window.open(paymentResult.paymentUrl, '_blank');
-          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+          window.location.href = paymentResult.paymentUrl;
+          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran.`, 'info');
         } else {
           showNotification('Error', 'Gagal membuat pembayaran!', 'error');
           return;
@@ -403,14 +478,30 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setGamepassStep('create');
         setShowGamepassModal(false);
         
+        // Reset reCAPTCHA
+        if (recaptchaRef.current?.reset) {
+          recaptchaRef.current.reset();
+        }
+        setRecaptchaToken('');
+        
         if (window.gamepassDetails) {
           delete window.gamepassDetails;
         }
       } else {
+        // Reset reCAPTCHA jika gagal
+        if (recaptchaRef.current?.reset) {
+          recaptchaRef.current.reset();
+        }
+        setRecaptchaToken('');
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
     } catch (_error) {
-      console._error('Error creating transaction:', error);
+      console.error('Error creating transaction:', _error);
+      // Reset reCAPTCHA jika error
+      if (recaptchaRef.current?.reset) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken('');
       showNotification('Error', 'Terjadi kesalahan!', 'error');
     } finally {
       setIsLoading(false);
@@ -442,14 +533,15 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         // PERBAIKAN: Pastikan gamepassId dikirim
         ...(gamepassVerified && window.gamepassDetails && {
           gamepassId: window.gamepassDetails.id.toString()
-        })
+        }),
+        recaptchaToken // Tambahkan token reCAPTCHA
       };
       
-      console.log('=== Sending transaction data ===', transactionData);
-      console.log('=== GAMEPASS DEBUG ===');
-      console.log('gamepassVerified:', gamepassVerified);
-      console.log('window.gamepassDetails:', window.gamepassDetails);
-      console.log('gamepassId being sent:', window.gamepassDetails?.id);
+      // console.log('=== Sending transaction data ===', transactionData);
+      // console.log('=== GAMEPASS DEBUG ===');
+      // console.log('gamepassVerified:', gamepassVerified);
+      // console.log('window.gamepassDetails:', window.gamepassDetails);
+      // console.log('gamepassId being sent:', window.gamepassDetails?.id);
       
       const response = await fetch('/api/transactions', {
         method: 'POST',
@@ -470,8 +562,8 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
           paymentMethod: paymentMethod
         };
         
-        console.log('=== Sending to Tripay API ===');
-        console.log('Payment data:', paymentData);
+        // console.log('=== Sending to Tripay API ===');
+        // console.log('Payment data:', paymentData);
         
         const paymentResponse = await fetch('/api/payment/tripay', {
           method: 'POST',
@@ -480,12 +572,12 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         });
         
         const paymentResult = await paymentResponse.json();
-        console.log('Payment response:', paymentResult);
+        // console.log('Payment response:', paymentResult);
         
         if (paymentResult.success) {
           // Redirect ke halaman pembayaran Tripay
-          window.open(paymentResult.paymentUrl, '_blank');
-          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+          window.location.href = paymentResult.paymentUrl;
+          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran.`, 'info');
         } else {
           showNotification('Error', 'Gagal membuat pembayaran!', 'error');
           return;
@@ -503,15 +595,31 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
         setGamepassStep('create');
         setShowGamepassModal(false);
         
+        // Reset reCAPTCHA
+        if (recaptchaRef.current?.reset) {
+          recaptchaRef.current.reset();
+        }
+        setRecaptchaToken('');
+        
         // Bersihkan gamepass details
         if (window.gamepassDetails) {
           delete window.gamepassDetails;
         }
       } else {
+        // Reset reCAPTCHA jika gagal
+        if (recaptchaRef.current?.reset) {
+          recaptchaRef.current.reset();
+        }
+        setRecaptchaToken('');
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
     } catch (_error) {
-      console._error('Error creating transaction:', error);
+      console.error('Error creating transaction:', _error);
+      // Reset reCAPTCHA jika error
+      if (recaptchaRef.current?.reset) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken('');
       showNotification('Error', 'Terjadi kesalahan!', 'error');
     } finally {
       setIsLoading(false);
@@ -545,9 +653,9 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
       // Simpan data gamepass untuk digunakan saat membuat transaksi
       window.gamepassDetails = data.gamepassDetails;
       
-      console.log('=== GAMEPASS VERIFIED ===');
-      console.log('GamepassId:', data.gamepassDetails.id);
-      console.log('GamepassVerified set to:', true);
+      // console.log('=== GAMEPASS VERIFIED ===');
+      // console.log('GamepassId:', data.gamepassDetails.id);
+      // console.log('GamepassVerified set to:', true);
       
       // Tampilkan konfirmasi dengan detail gamepass
       const gamepassDetails = data.gamepassDetails;
@@ -576,7 +684,7 @@ const [showDeliveryModal, setShowDeliveryModal] = useState(false);
       );
     }
   } catch (_error) {
-    console._error('Error checking gamepass:', error);
+    console.error('Error checking gamepass:', _error);
     showNotification('Error', 'Gagal memverifikasi gamepass!', 'error');
   } finally {
     setIsCheckingGamepass(false);
@@ -591,6 +699,12 @@ const handleTopup = async () => {
   
   if (!whatsappNumber.trim()) {
     showNotification('Error', 'Silakan masukkan nomor WhatsApp!', 'error');
+    return;
+  }
+  
+  // Validasi reCAPTCHA
+  if (!recaptchaToken) {
+    setRecaptchaError('Please complete the reCAPTCHA verification.');
     return;
   }
   
@@ -653,8 +767,10 @@ const handleTopup = async () => {
             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-3">
                 <Image 
-                  src={robloxUser.avatarUrl} 
+                  src={robloxUser.avatarUrl || '/default-avatar.png'}
                   alt={robloxUser.username}
+                  width={48}
+                  height={48}
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-green-300"
                 />
                 <div className="flex-1 min-w-0">
@@ -785,16 +901,32 @@ const handleTopup = async () => {
             value={paymentMethod} 
             onChange={(e) => setPaymentMethod(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loadingChannels}
           >
-            <option value="QRIS">QRIS (Semua E-Wallet)</option>
-            <option value="BRIVA">BRI Virtual Account</option>
-            <option value="BNIVA">BNI Virtual Account</option>
-            <option value="BSIVA">BSI Virtual Account</option>
-            <option value="MANDIRIVA">Mandiri Virtual Account</option>
-            <option value="PERMATAVA">Permata Virtual Account</option>
-            <option value="ALFAMART">Alfamart</option>
-            <option value="INDOMARET">Indomaret</option>
+            {loadingChannels ? (
+              <option>Loading payment methods...</option>
+            ) : (
+              paymentChannels.map((channel) => (
+                <option key={channel.code} value={channel.code}>
+                  {channel.name}
+                </option>
+              ))
+            )}
           </select>
+        </div>
+        
+        {/* reCAPTCHA */}
+        <div className="mb-6">
+          <ReCaptcha
+            siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+            onVerify={handleRecaptchaVerify}
+            onExpired={handleRecaptchaExpired}
+            onError={handleRecaptchaError}
+            instanceId="gamepass"
+          />
+          {recaptchaError && (
+            <p className="text-red-500 text-sm mt-2 text-center">{recaptchaError}</p>
+          )}
         </div>
         
         {/* Price Summary - Responsive */}
@@ -822,7 +954,7 @@ const handleTopup = async () => {
         {/* Submit Button - Responsive */}
         <button
           onClick={handleTopup}
-          disabled={!robloxUser || isLoading || !whatsappNumber.trim() || !canOrder}
+          disabled={!robloxUser || isLoading || !whatsappNumber.trim() || !canOrder || !recaptchaToken}
           className="w-full bg-primary-dark hover:bg-primary-700 text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
         >
           {isLoading ? (

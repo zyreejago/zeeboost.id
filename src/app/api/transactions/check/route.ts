@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Transaction, User, RobuxStock } from '@/lib/models';
 
 // GET method untuk mengambil transaksi berdasarkan ID
 export async function GET(request: NextRequest) {
@@ -14,20 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const transaction = await prisma.transaction.findUnique({
-      where: {
-        id: parseInt(transactionId)
-      },
-      include: {
-        user: {
-          select: {
-            robloxUsername: true,
-            email: true
-          }
-        },
-        robuxStock: true
-      }
-    });
+    const transaction = await Transaction.findById(parseInt(transactionId));
 
     if (!transaction) {
       return NextResponse.json(
@@ -35,6 +22,10 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    // Ambil data user dan robuxStock secara terpisah
+    const user = await User.findById(transaction.userId);
+    const robuxStock = transaction.robuxStockId ? await RobuxStock.findById(transaction.robuxStockId) : null;
 
     return NextResponse.json({
       success: true,
@@ -47,12 +38,12 @@ export async function GET(request: NextRequest) {
         createdAt: transaction.createdAt,
         paymentProof: transaction.paymentProof,
         user: {
-          robloxUsername: transaction.user.robloxUsername
+          robloxUsername: user?.robloxUsername
         }
       }
     });
   } catch (_error) {
-    console._error('Get transaction error:', error);
+    console.error('Get transaction error:', _error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengambil transaksi' },
       { status: 500 }
@@ -71,28 +62,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Cari transaksi berdasarkan username Roblox
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        user: {
-          robloxUsername: {
-            equals: robloxUsername
-            // Hapus mode: 'insensitive' karena tidak valid
-          }
-        }
-      },
-      include: {
-        user: {
-          select: {
-            robloxUsername: true,
-            email: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    // Cari user berdasarkan username Roblox
+    const user = await User.findByRobloxUsername(robloxUsername);
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Tidak ada pesanan ditemukan untuk username ini' },
+        { status: 404 }
+      );
+    }
+    
+    // Cari transaksi berdasarkan userId
+    const transactions = await Transaction.findByUserId(user.id);
 
     if (transactions.length === 0) {
       return NextResponse.json(
@@ -111,7 +92,7 @@ export async function POST(request: NextRequest) {
       createdAt: transaction.createdAt,
       paymentProof: transaction.paymentProof,
       user: {
-        robloxUsername: transaction.user.robloxUsername
+        robloxUsername: user.robloxUsername
       }
     }));
 
@@ -121,7 +102,7 @@ export async function POST(request: NextRequest) {
       total: transactions.length
     });
   } catch (_error) {
-    console._error('Check order error:', error);
+    console.error('Check order error:', _error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengecek pesanan' },
       { status: 500 }

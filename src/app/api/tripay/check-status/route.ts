@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const TRIPAY_API_KEY = process.env.TRIPAY_API_KEY || 'DEV-u12iianpoxG2rYzosjnMypHS6fTRIYH7dJbQ9fbj';
-const TRIPAY_BASE_URL = 'https://tripay.co.id/api-sandbox';
+const TRIPAY_BASE_URL = 'https://tripay.co.id/api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (_error) {
-    console._error('Error checking Tripay status:', error);
+    console.error('Error checking Tripay status:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengecek status' },
       { status: 500 }

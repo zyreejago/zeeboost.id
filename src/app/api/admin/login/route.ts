@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
+import { Admin } from '@/lib/models';
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
 
     // Cari admin
-    const admin = await prisma.admin.findUnique({
-      where: { username },
-    });
+    const admin = await Admin.findByUsername(username);
 
     if (!admin || !admin.isActive) {
       return NextResponse.json(
@@ -51,13 +49,14 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 86400, // 24 hours
+      path: '/',
     });
 
     return response;
-  } catch (_error) {
-    console._error('Login error:', error);
+  } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'An error occurred during login' },
       { status: 500 }
     );
   }

@@ -20,7 +20,7 @@ async function getNews(id: string): Promise<News | null> {
     
     return await response.json();
   } catch (_error) {
-    console._error('Error fetching news:', error);
+    console.error('Error fetching news:', error);
     return null;
   }
 }
@@ -39,7 +39,7 @@ async function getRelatedNews(currentId: number): Promise<News[]> {
     const data = await response.json();
     return data.news.filter((news: News) => news.id !== currentId);
   } catch (_error) {
-    console._error('Error fetching related news:', error);
+    console.error('Error fetching related news:', error);
     return [];
   }
 }

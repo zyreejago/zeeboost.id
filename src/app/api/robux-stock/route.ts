@@ -1,22 +1,14 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { RobuxStock } from '@/lib/models';
 
 export async function GET() {
   try {
-    const stocks = await prisma.robuxStock.findMany({
-      where: {
-        isActive: true
-      },
-      orderBy: {
-        amount: 'asc'
-      }
-    });
-
+    const stocks = await RobuxStock.getActive();
     return NextResponse.json(stocks);
-  } catch (_error) {
-    console._error('Error fetching robux stock:', error);
+  } catch (error) {
+    console.error('Error fetching robux stocks:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch robux stock' },
+      { error: 'Failed to fetch robux stocks' },
       { status: 500 }
     );
   }

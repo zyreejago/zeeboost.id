@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Banner } from '@/lib/models';
 
 export async function GET() {
   try {
-    const banners = await prisma.banner.findMany({
-      where: { isActive: true },
-      orderBy: { order: 'asc' },
-    });
-    
+    const banners = await Banner.getActive();
     return NextResponse.json(banners);
-  } catch (_error) {
-    console._error('Get banners error:', error);
+  } catch (error) {
+    console.error('Error fetching banners:', error);
     return NextResponse.json(
       { error: 'Failed to fetch banners' },
       { status: 500 }
@@ -34,7 +30,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(banner);
   } catch (_error) {
-    console._error('Create banner error:', error);
+    console.error('Create banner error:', error);
     return NextResponse.json(
       { error: 'Failed to create banner' },
       { status: 500 }

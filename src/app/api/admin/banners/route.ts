@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Banner } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -11,13 +11,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const banners = await prisma.banner.findMany({
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }]
-    });
+    const banners = await Banner.getAll();
 
     return NextResponse.json(banners);
   } catch (_error) {
-    console._error('Error fetching banners:', error);
+    console.error('Error fetching banners:', _error);
     return NextResponse.json(
       { error: 'Failed to fetch banners' },
       { status: 500 }
@@ -71,19 +69,20 @@ export async function POST(request: NextRequest) {
     // Create banner record with image URL
     const imageUrl = `/uploads/banners/${fileName}`;
     
-    const banner = await prisma.banner.create({
-      data: {
-        title,
-        subtitle: subtitle || null,
-        imageUrl,
-        isActive,
-        order,
-      },
+    // Ganti bagian ini
+    const banner = await Banner.create({
+      title,
+      subtitle,
+      imageUrl, // Perbaikan: menggunakan variabel imageUrl yang sudah didefinisikan
+      isActive,
+      order,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
 
-    return NextResponse.json({ success: true, banner });
+    return NextResponse.json(banner);
   } catch (_error) {
-    console._error('Error creating banner:', error);
+    console.error('Error creating banner:', _error);
     return NextResponse.json(
       { error: 'Failed to create banner' },
       { status: 500 }

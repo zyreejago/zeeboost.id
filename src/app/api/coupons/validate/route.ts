@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Discount } from '@/lib/models';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { code } = await request.json();
     
@@ -11,59 +11,51 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Cari discount berdasarkan kode
-    const discount = await prisma.discount.findUnique({
-      where: { 
-        code: code.toUpperCase(),
-      },
-    });
-
-    // Validasi discount tidak ditemukan
+    
+    const discount = await Discount.findByCode(code);
+    
     if (!discount) {
-      return NextResponse.json({
-        success: false,
-        message: 'Kode kupon tidak valid'
-      });
+      return NextResponse.json(
+        { success: false, message: 'Kode kupon tidak valid' },
+        { status: 200 }
+      );
     }
-
-    // Validasi discount tidak aktif
-    if (!discount.isActive) {
-      return NextResponse.json({
-        success: false,
-        message: 'Kode kupon sudah tidak aktif'
-      });
+    
+    // Validasi coupon
+    const now = new Date();
+    const isValid = (
+      discount.isActive &&
+      (!discount.validUntil || new Date(discount.validUntil) > now) &&
+      (discount.maxUses === 0 || discount.currentUses < discount.maxUses)
+    );
+    
+    if (!isValid) {
+      let message = 'Kupon tidak valid';
+      if (!discount.isActive) {
+        message = 'Kupon tidak aktif';
+      } else if (discount.validUntil && new Date(discount.validUntil) <= now) {
+        message = 'Kupon sudah kedaluwarsa';
+      } else if (discount.maxUses > 0 && discount.currentUses >= discount.maxUses) {
+        message = 'Kupon sudah mencapai batas penggunaan';
+      }
+      
+      return NextResponse.json(
+        { success: false, message },
+        { status: 200 }
+      );
     }
-
-    // Validasi masa berlaku
-    if (discount.validUntil && new Date() > discount.validUntil) {
-      return NextResponse.json({
-        success: false,
-        message: 'Kode kupon sudah kedaluwarsa'
-      });
-    }
-
-    // Validasi batas penggunaan
-    if (discount.maxUses > 0 && discount.currentUses >= discount.maxUses) {
-      return NextResponse.json({
-        success: false,
-        message: 'Kode kupon sudah mencapai batas penggunaan'
-      });
-    }
-
-    // Return data kupon yang valid
+    
     return NextResponse.json({
       success: true,
       coupon: {
+        id: discount.id,
         code: discount.code,
         discount: discount.value,
-        type: discount.type,
-        minPurchase: discount.minPurchase
+        type: discount.type
       }
     });
-
-  } catch (_error) {
-    console._error('Error validating coupon:', error);
+  } catch (error) {
+    console.error('Error validating coupon:', error);
     return NextResponse.json(
       { success: false, message: 'Gagal memvalidasi kupon' },
       { status: 500 }

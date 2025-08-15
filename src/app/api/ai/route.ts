@@ -150,7 +150,7 @@ Pertanyaan user: ${message}
     // Return format yang sesuai dengan ChatWidget (menggunakan 'text' bukan 'response')
     return NextResponse.json({ text: aiResponse });
   } catch (_error) {
-    console._error("AI Error:", error);
+    console.error("AI Error:", error);
     return NextResponse.json(
       { 
         text: "Maaf, terjadi kesalahan sistem. Tim support kami akan segera membantu Anda. Silakan hubungi WhatsApp: +6287740517441 untuk bantuan langsung." 

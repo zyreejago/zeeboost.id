@@ -137,3 +137,13 @@ export default function TopupPage() {
     </>
   );
 }
+
+// HAPUS EXPORT METADATA DAN VIEWPORT - TIDAK DIIZINKAN DALAM CLIENT COMPONENT
+// export const metadata = {
+//   title: 'Top Up - ZeeBoost',
+//   description: 'Top up Robux dengan mudah dan aman'
+// };
+
+// export const viewport = {
+//   themeColor: '#3b82f6'
+// };

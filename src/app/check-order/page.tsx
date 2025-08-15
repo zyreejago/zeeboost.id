@@ -64,7 +64,7 @@ export default function CheckOrderPage() {
         setHasSearched(true);
       }
     } catch (_error) {
-      console._error('Error checking order:', error);
+      console.error('Error checking order:', error);
       setError('Terjadi kesalahan koneksi');
       setHasSearched(true);
     } finally {
@@ -145,7 +145,7 @@ export default function CheckOrderPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-primary-dark text-white py-3 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Discount } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 
-// GET - Ambil semua discounts
-export async function GET(request: NextRequest) {
+// GET - Ambil semua diskon
+export async function GET() {
   try {
-    const adminAuth = await verifyAdminToken(request);
-    if (!adminAuth.success) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const discounts = await prisma.discount.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const discounts = await Discount.getAll();
     return NextResponse.json(discounts);
   } catch (_error) {
     return NextResponse.json(
@@ -22,44 +15,38 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Tambah discount baru
-export async function POST(request: NextRequest) {
+// POST - Buat diskon baru
+export async function POST(request: Request) {
   try {
     const adminAuth = await verifyAdminToken(request);
     if (!adminAuth.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { code, name, description, type, value, maxUses, minPurchase, isActive, validUntil } = await request.json();
+    const body = await request.json();
+    const { code, name, description, type, value, maxUses, minPurchase, isActive, validUntil } = body;
 
-    // Validasi kode discount unik
-    const existingDiscount = await prisma.discount.findUnique({
-      where: { code }
-    });
+    // Add timestamps
+    const now = new Date();
+    const discountData = {
+      code,
+      name,
+      description: description || '',
+      type,
+      value: parseInt(value),
+      maxUses: parseInt(maxUses) || 0,
+      currentUses: 0,
+      minPurchase: parseInt(minPurchase) || 0,
+      isActive: Boolean(isActive),
+      validUntil: validUntil || null,
+      createdAt: now,
+      updatedAt: now
+    };
 
-    if (existingDiscount) {
-      return NextResponse.json(
-        { error: 'Kode discount sudah digunakan' },
-        { status: 400 }
-      );
-    }
-
-    const discount = await prisma.discount.create({
-      data: {
-        code,
-        name,
-        description,
-        type,
-        value,
-        maxUses,
-        minPurchase,
-        isActive,
-        validUntil: validUntil ? new Date(validUntil) : null,
-      },
-    });
-
-    return NextResponse.json(discount);
-  } catch (_error) {
+    const result = await Discount.create(discountData);
+    return NextResponse.json({ success: true, discount: result });
+  } catch (error) {
+    console.error('Error creating discount:', error);
     return NextResponse.json(
       { error: 'Failed to create discount' },
       { status: 500 }

@@ -25,7 +25,7 @@ export const useAdminData = () => {
       setRobuxStock(await stockRes.json());
       setDiscounts(await discountsRes.json());
     } catch (_error) {
-      console._error('Failed to fetch data:', error);
+      console.error('Failed to fetch data:', error);
     }
   };
 

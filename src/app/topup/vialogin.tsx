@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import RobuxSlider from '@/components/RobuxSlider';
 import Image from 'next/image';
+import ReCaptcha from '@/components/ReCaptcha';
 
 
 interface RobloxUser {
@@ -31,6 +32,8 @@ interface RobuxOption {
 }
 
 export default function ViaLoginTopup() {
+  console.log('ViaLoginPage component loaded'); // Tambahkan ini
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [robloxUser, setRobloxUser] = useState<RobloxUser | null>(null);
@@ -55,6 +58,8 @@ export default function ViaLoginTopup() {
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [couponError, setCouponError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
+  const [paymentChannels, setPaymentChannels] = useState<any[]>([]);
+  const [loadingChannels, setLoadingChannels] = useState(true);
   
   // Modal states
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -68,9 +73,16 @@ export default function ViaLoginTopup() {
   // Settings
   const [canOrder, setCanOrder] = useState(true);
   
+  // reCAPTCHA
+  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
+  const [recaptchaError, setRecaptchaError] = useState<string>('');
+  const recaptchaRef = useRef<any>(null);
+  
   useEffect(() => {
+    console.log('useEffect triggered'); // Tambahkan ini
     fetchSettings();
     fetchRobuxOptions();
+    fetchPaymentChannels();
   }, []);
   
   // Auto-validate username
@@ -117,7 +129,7 @@ export default function ViaLoginTopup() {
       // Konversi string 'true'/'false' ke boolean
       setCanOrder(data.canOrder === 'true');
     } catch (_error) {
-      console._error('Error fetching settings:', error);
+      console.error('Error fetching settings:', _error);
     }
   };
   
@@ -126,10 +138,10 @@ export default function ViaLoginTopup() {
       const response = await fetch('/api/admin/robux-themes');
       const data = await response.json();
       
-      if (data.success) {
-        setRobuxOptions(data.themes);
-      } else {
-        console.error('Error fetching robux themes:', data.message);
+      if (Array.isArray(data)) {
+        setRobuxOptions(data);
+      } else if (data.error) {
+        console.error('Error fetching robux themes:', data.error);
         // Fallback ke data default jika API gagal
         const defaultOptions: RobuxOption[] = [
           { id: 1, name: 'Paket Hemat', robuxAmount: 100, price: 15000, themeType: 'small', isPremium: false, order: 1 },
@@ -139,7 +151,7 @@ export default function ViaLoginTopup() {
         setRobuxOptions(defaultOptions);
       }
     } catch (_error) {
-      console._error('Error fetching robux options:', error);
+      console.error('Error fetching robux options:', _error);
       // Fallback ke data default
       const defaultOptions: RobuxOption[] = [
         { id: 1, name: 'Paket Hemat', robuxAmount: 100, price: 15000, themeType: 'small', isPremium: false, order: 1 },
@@ -147,6 +159,48 @@ export default function ViaLoginTopup() {
         { id: 3, name: 'Paket Premium', robuxAmount: 1000, price: 130000, themeType: 'premium', isPremium: true, order: 3 },
       ];
       setRobuxOptions(defaultOptions);
+    }
+  };
+  
+  const getDefaultChannels = () => [
+    { code: 'QRIS', name: 'QRIS (Semua E-Wallet)', group: 'E-Wallet', fee_merchant: { flat: 0, percent: 0.7 }, active: true },
+    { code: 'BRIVA', name: 'BRI Virtual Account', group: 'Virtual Account', fee_merchant: { flat: 4000, percent: 0 }, active: true },
+    { code: 'BNIVA', name: 'BNI Virtual Account', group: 'Virtual Account', fee_merchant: { flat: 4000, percent: 0 }, active: true },
+    { code: 'BSIVA', name: 'BSI Virtual Account', group: 'Virtual Account', fee_merchant: { flat: 4000, percent: 0 }, active: true },
+    { code: 'MANDIRIVA', name: 'Mandiri Virtual Account', group: 'Virtual Account', fee_merchant: { flat: 4000, percent: 0 }, active: true },
+    { code: 'PERMATAVA', name: 'Permata Virtual Account', group: 'Virtual Account', fee_merchant: { flat: 4000, percent: 0 }, active: true },
+    { code: 'ALFAMART', name: 'Alfamart', group: 'Convenience Store', fee_merchant: { flat: 2500, percent: 0 }, active: true },
+    { code: 'INDOMARET', name: 'Indomaret', group: 'Convenience Store', fee_merchant: { flat: 2500, percent: 0 }, active: true }
+  ];
+  
+  const fetchPaymentChannels = async () => {
+    try {
+      setLoadingChannels(true);
+      console.log('Fetching payment channels...');
+      
+      const response = await fetch('/api/tripay/channels');
+      const data = await response.json();
+      
+      console.log('Payment channels response:', data);
+      
+      if (data.success && data.channels && data.channels.length > 0) {
+        setPaymentChannels(data.channels);
+        setPaymentMethod(data.channels[0].code);
+        console.log('Using API channels:', data.channels.length);
+      } else {
+        console.log('API returned empty channels, using default channels');
+        const defaultChannels = getDefaultChannels();
+        setPaymentChannels(defaultChannels);
+        setPaymentMethod(defaultChannels[0].code);
+      }
+    } catch (error) {
+      console.error('Error fetching payment channels:', error);
+      console.log('Using default channels due to error');
+      const defaultChannels = getDefaultChannels();
+      setPaymentChannels(defaultChannels);
+      setPaymentMethod(defaultChannels[0].code);
+    } finally {
+      setLoadingChannels(false);
     }
   };
   
@@ -202,7 +256,7 @@ export default function ViaLoginTopup() {
       
       setHasSearched(true);
     } catch (_error) {
-      console._error('Error validating username:', error);
+      console.error('Error validating username:', _error);
       setRobloxUser(null);
       setHasSearched(true);
     } finally {
@@ -228,7 +282,7 @@ export default function ViaLoginTopup() {
         setCouponError(data.message || 'Kode kupon tidak valid');
       }
     } catch (_error) {
-      console._error('Error validating coupon:', error);
+      console.error('Error validating coupon:', _error);
       setCouponError('Gagal memvalidasi kupon');
     } finally {
       setIsValidatingCoupon(false);
@@ -292,7 +346,28 @@ export default function ViaLoginTopup() {
     setWhatsappNumber(formatted);
   };
   
+  const handleRecaptchaVerify = (token: string) => {
+    setRecaptchaToken(token);
+    setRecaptchaError('');
+  };
+
+  const handleRecaptchaExpired = () => {
+    setRecaptchaToken('');
+    setRecaptchaError('reCAPTCHA expired. Please verify again.');
+  };
+
+  const handleRecaptchaError = () => {
+    setRecaptchaToken('');
+    setRecaptchaError('reCAPTCHA error. Please try again.');
+  };
+
   const handleTopup = async () => {
+    // Validasi reCAPTCHA
+    if (!recaptchaToken) {
+      setRecaptchaError('Please complete the reCAPTCHA verification.');
+      return;
+    }
+
     if (!robloxUser) {
       showNotification('Error', 'Silakan validasi username terlebih dahulu!', 'error');
       return;
@@ -332,7 +407,8 @@ export default function ViaLoginTopup() {
         finalPrice: calculatePrice(),
         isAliveVerification,
         backupCodes: isAliveVerification ? [backupCode1, backupCode2, backupCode3] : null,
-        robuxOptionType: selectedRobuxOption.themeType
+        robuxOptionType: selectedRobuxOption.themeType,
+        recaptchaToken
       };
       
       const response = await fetch('/api/transactions', {
@@ -362,8 +438,15 @@ export default function ViaLoginTopup() {
         const paymentResult = await paymentResponse.json();
         
         if (paymentResult.success) {
-          window.open(paymentResult.paymentUrl, '_blank');
-          showNotification('Info', `Transaksi berhasil dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+          // Reset reCAPTCHA setelah berhasil
+          if (recaptchaRef.current?.reset) {
+            recaptchaRef.current.reset();
+          }
+          setRecaptchaToken('');
+          
+          window.location.href = paymentResult.paymentUrl;
+          // showNotification('Info', `Transaksi berhasil dibuat! ID: ${transaction.id}. Silakan selesaikan pembayaran di tab yang baru dibuka.`, 'info');
+          showNotification('Info', `Transaksi dibuat! ID: ${transaction.id}. Anda akan diarahkan ke halaman pembayaran.`, 'info');
           
           // Reset form
           setUsername('');
@@ -378,13 +461,32 @@ export default function ViaLoginTopup() {
           setBackupCode2('');
           setBackupCode3('');
         } else {
+          // Reset reCAPTCHA jika gagal
+          if (recaptchaRef.current?.reset) {
+            recaptchaRef.current.reset();
+          }
+          setRecaptchaToken('');
+          
           showNotification('Error', 'Gagal membuat pembayaran!', 'error');
         }
       } else {
+        // Reset reCAPTCHA jika gagal
+        if (recaptchaRef.current?.reset) {
+          recaptchaRef.current.reset();
+        }
+        setRecaptchaToken('');
+        
         showNotification('Error', 'Gagal membuat transaksi!', 'error');
       }
     } catch (_error) {
-      console._error('Error creating transaction:', error);
+      console.error('Error creating transaction:', _error);
+      
+      // Reset reCAPTCHA jika error
+      if (recaptchaRef.current?.reset) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken('');
+      
       showNotification('Error', 'Terjadi kesalahan!', 'error');
     } finally {
       setIsLoading(false);
@@ -836,20 +938,24 @@ export default function ViaLoginTopup() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Metode Pembayaran
           </label>
-          <select 
-            value={paymentMethod} 
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base"
-          >
-            <option value="QRIS">QRIS (Semua E-Wallet)</option>
-            <option value="BRIVA">BRI Virtual Account</option>
-            <option value="BNIVA">BNI Virtual Account</option>
-            <option value="BSIVA">BSI Virtual Account</option>
-            <option value="MANDIRIVA">Mandiri Virtual Account</option>
-            <option value="PERMATAVA">Permata Virtual Account</option>
-            <option value="ALFAMART">Alfamart</option>
-            <option value="INDOMARET">Indomaret</option>
-          </select>
+          {loadingChannels ? (
+            <div className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-500 border-t-transparent mr-2"></div>
+              <span className="text-gray-500 text-sm">Memuat metode pembayaran...</span>
+            </div>
+          ) : (
+            <select 
+              value={paymentMethod} 
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base"
+            >
+              {paymentChannels.map((channel) => (
+                <option key={channel.code} value={channel.code}>
+                  {channel.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         
         {/* Price Summary */}
@@ -876,10 +982,24 @@ export default function ViaLoginTopup() {
           </div>
         )}
         
+        {/* reCAPTCHA */}
+        <div className="mb-6">
+          <ReCaptcha
+            siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+            onVerify={handleRecaptchaVerify}
+            onExpired={handleRecaptchaExpired}
+            onError={handleRecaptchaError}
+            instanceId="vialogin"
+          />
+          {recaptchaError && (
+            <p className="text-red-500 text-sm mt-2 text-center">{recaptchaError}</p>
+          )}
+        </div>
+
         {/* Submit Button */}
         <button
           onClick={handleTopup}
-          disabled={!robloxUser || !password.trim() || !selectedRobuxOption || !whatsappNumber.trim() || isLoading || !canOrder}
+          disabled={!robloxUser || !password.trim() || !selectedRobuxOption || !whatsappNumber.trim() || isLoading || !canOrder || !recaptchaToken}
           className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 sm:py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
         >
           {isLoading ? (

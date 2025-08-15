@@ -1,51 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { News } from '@/lib/models';
 
-// GET - Ambil semua news yang published untuk publik
 export async function GET(request: NextRequest) {
   try {
+    console.log('News API called');
+    
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const skip = (page - 1) * limit;
-
-    const [news, total] = await Promise.all([
-      prisma.news.findMany({
-        where: {
-          isPublished: true,
-        },
-        orderBy: { publishedAt: 'desc' },
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          excerpt: true,
-          imageUrl: true,
-          publishedAt: true,
-          createdAt: true,
-        },
-      }),
-      prisma.news.count({
-        where: {
-          isPublished: true,
-        },
-      }),
-    ]);
-
-    return NextResponse.json({
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const offset = (page - 1) * limit;
+    
+    console.log('Fetching news with params:', { page, limit, offset });
+    
+    // Get all published news first
+    const allNews = await News.getPublished();
+    console.log('All news fetched:', allNews?.length || 0, 'items');
+    
+    // Ensure allNews is an array
+    const newsArray = Array.isArray(allNews) ? allNews : [];
+    
+    const total = newsArray.length;
+    const totalPages = Math.ceil(total / limit);
+    
+    // Apply pagination
+    const news = newsArray.slice(offset, offset + limit);
+    
+    const result = {
       news,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (_error) {
+      total,
+      totalPages,
+      currentPage: page
+    };
+    
+    //console.log('Returning news result:', {
+    //  newsCount: news.length,
+    //  total,
+    //  totalPages,
+    //  currentPage: page
+    //});
+    
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
     return NextResponse.json(
-      { error: 'Failed to fetch news' },
+      { 
+        error: 'Failed to fetch news',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        news: [],
+        total: 0,
+        totalPages: 0
+      },
       { status: 500 }
     );
   }

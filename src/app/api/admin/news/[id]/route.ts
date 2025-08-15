@@ -1,8 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { News } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 
-// PUT - Update news
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const adminAuth = await verifyAdminToken(request);
+    if (!adminAuth.success) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const news = await News.findById(parseInt(params.id));
+    if (!news) {
+      return NextResponse.json({ error: 'News not found' }, { status: 404 });
+    }
+    return NextResponse.json(news);
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch news' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const adminAuth = await verifyAdminToken(request);
@@ -10,23 +30,28 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const newsId = parseInt(params.id);
     const { title, content, excerpt, imageUrl, isPublished } = await request.json();
+    
+    const updateData = {
+      title,
+      content,
+      excerpt: excerpt || '',
+      imageUrl: imageUrl || '',
+      isPublished: Boolean(isPublished),
+      publishedAt: isPublished ? new Date() : null,
+      updatedAt: new Date()
+    };
 
-    const news = await prisma.news.update({
-      where: { id: newsId },
-      data: {
-        title,
-        content,
-        excerpt,
-        imageUrl,
-        isPublished,
-        publishedAt: isPublished ? new Date() : null,
-      },
+    await News.update(parseInt(params.id), updateData);
+    const updatedNews = await News.findById(parseInt(params.id));
+
+    return NextResponse.json({
+      success: true,
+      news: updatedNews,
+      message: 'News updated successfully'
     });
-
-    return NextResponse.json(news);
-  } catch (_error) {
+  } catch (error) {
+    console.error('Error updating news:', error);
     return NextResponse.json(
       { error: 'Failed to update news' },
       { status: 500 }
@@ -34,7 +59,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// DELETE - Hapus news
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const adminAuth = await verifyAdminToken(request);
@@ -42,14 +66,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const newsId = parseInt(params.id);
-    
-    await prisma.news.delete({
-      where: { id: newsId },
-    });
+    await News.delete(parseInt(params.id));
 
-    return NextResponse.json({ message: 'News deleted successfully' });
-  } catch (_error) {
+    return NextResponse.json({
+      success: true,
+      message: 'News deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting news:', error);
     return NextResponse.json(
       { error: 'Failed to delete news' },
       { status: 500 }

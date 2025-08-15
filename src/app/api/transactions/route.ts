@@ -1,13 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { sendTelegramNotification } from '@/lib/telegram';
+import { User, Transaction, RobuxStock, Discount } from '@/lib/models';
+
+// ❌ HAPUS method GET ini (baris 6-18)
+// export async function GET(request: NextRequest) {
+//   try {
+//     const allTransactions = await Transaction.getAll();
+//     const recentTransactions = allTransactions.slice(0, 10);
+//     return NextResponse.json(recentTransactions);
+//   } catch (error) {
+//     console.error('Failed to fetch transactions:', error);
+//     return NextResponse.json(
+//       { error: 'Failed to fetch transactions' },
+//       { status: 500 }
+//     );
+//   }
+// }
 
 export async function POST(request: NextRequest) {
   try {
     console.log('=== Transaction API Called ===');
     
-    const requestBody = await request.json();
-    console.log('Request body:', requestBody);
+    let requestBody;
+    try {
+      requestBody = await request.json();
+      console.log('Request body:', requestBody);
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      return NextResponse.json(
+        { error: 'Format data tidak valid' },
+        { status: 400 }
+      );
+    }
     
     const { 
       robloxUsername, 
@@ -40,12 +64,10 @@ export async function POST(request: NextRequest) {
     
     // Validasi kupon jika ada
     let appliedDiscount = null;
-    if (couponCode) {
+    if (couponCode && couponCode.trim()) {
       try {
         console.log('Checking coupon:', couponCode);
-        const discountRecord = await prisma.discount.findUnique({
-          where: { code: couponCode.toUpperCase() }
-        });
+        const discountRecord = await Discount.findByCode(couponCode.toUpperCase());
         
         if (discountRecord && discountRecord.isActive) {
           if (discountRecord.maxUses > 0 && discountRecord.currentUses >= discountRecord.maxUses) {
@@ -55,15 +77,15 @@ export async function POST(request: NextRequest) {
             );
           }
           
-          await prisma.discount.update({
-            where: { id: discountRecord.id },
-            data: { currentUses: { increment: 1 } }
+          await Discount.update(discountRecord.id, { 
+            currentUses: discountRecord.currentUses + 1 
           });
           appliedDiscount = discountRecord;
           console.log('Coupon applied:', appliedDiscount);
         }
       } catch (couponError) {
         console.error('Coupon processing error:', couponError);
+        // Tidak throw error, lanjutkan tanpa kupon
       }
     }
     
@@ -73,33 +95,29 @@ export async function POST(request: NextRequest) {
     try {
       console.log('Getting robux price from stock...');
       
-      const robuxStock = await prisma.robuxStock.findFirst({
-        where: {
-          amount: robuxAmount,
-          isActive: true
-        }
-      });
+      // Pastikan robuxAmount adalah integer
+      const robuxAmountInt = parseInt(robuxAmount);
+      
+      const robuxStock = await RobuxStock.findByAmount(robuxAmountInt);
       
       if (robuxStock) {
         basePrice = robuxStock.price;
         selectedRobuxStock = robuxStock;
-        console.log(`Using price from stock for ${robuxAmount} Robux: ${basePrice}`);
+        console.log(`Using price from stock for ${robuxAmountInt} Robux: ${basePrice}`);
       } else {
-        const defaultStock = await prisma.robuxStock.findFirst({
-          where: {
-            isActive: true
-          },
-          orderBy: {
-            amount: 'asc'
-          }
-        });
+        const defaultStock = await RobuxStock.getActive();
         
-        if (defaultStock) {
-          basePrice = Math.round((robuxAmount / defaultStock.amount) * defaultStock.price);
-          selectedRobuxStock = defaultStock;
-          console.log(`Calculated price based on ${defaultStock.amount} Robux stock: ${basePrice}`);
+        if (defaultStock && defaultStock.length > 0) {
+          // Ambil stock dengan amount terkecil
+          const smallestStock = defaultStock.sort((a, b) => a.amount - b.amount)[0];
+          basePrice = Math.round((robuxAmountInt / smallestStock.amount) * smallestStock.price);
+          selectedRobuxStock = smallestStock;
+          console.log(`Calculated price based on ${smallestStock.amount} Robux stock: ${basePrice}`);
         } else {
-          throw new Error('No active robux stock found');
+          return NextResponse.json(
+            { error: 'No active robux stock found' },
+            { status: 500 }
+          );
         }
       }
       
@@ -119,38 +137,31 @@ export async function POST(request: NextRequest) {
     let user;
     try {
       console.log('Creating/finding user...');
-      // Ganti baris 122
-      const userData: {
-        robloxUsername: string;
-        robloxId: string;
-        email?: string;
-      } = {
+      user = await User.findByRobloxUsername(robloxUsername);
+      
+      const userData = {
         robloxUsername,
-        robloxId: robloxId.toString()
+        robloxId: robloxId.toString(),
+        ...(email && email.trim() ? { email: email.trim() } : {}),
+        ...(whatsappNumber && { whatsappNumber: whatsappNumber.trim() })
       };
       
-      if (email && email.trim()) {
-        userData.email = email.trim();
+      if (user) {
+        // Update user jika sudah ada - ambil data terbaru setelah update
+        await User.update(user.id, userData);
+        user = await User.findById(user.id);
+      } else {
+        // Buat user baru jika belum ada
+        user = await User.create(userData);
       }
       
-      console.log('User data:', userData);
-      
-      user = await prisma.user.upsert({
-        where: { robloxUsername },
-        update: {
-          robloxId: robloxId.toString(),
-          ...(whatsappNumber && { whatsappNumber: whatsappNumber.trim() })
-        },
-        create: {
-          ...userData,
-          ...(whatsappNumber && { whatsappNumber: whatsappNumber.trim() })
-        },
-      });
-      
       console.log('User created/found:', user.id);
-    } catch (_error) {
-      console.error('User creation error:', _error);
-      throw new Error(`Failed to create/find user: ${(_error as Error).message}`);
+    } catch (userError) {
+      console.error('User creation error:', userError);
+      return NextResponse.json(
+        { error: 'Gagal membuat/menemukan user' },
+        { status: 500 }
+      );
     }
     
     // Create transaction
@@ -169,6 +180,7 @@ export async function POST(request: NextRequest) {
         calculatedDiscount = discount;
       }
       
+      const now = new Date();
       const transactionData = {
         userId: user.id,
         robuxAmount: parseInt(robuxAmount),
@@ -179,9 +191,11 @@ export async function POST(request: NextRequest) {
         robuxStockId: selectedRobuxStock?.id || null,
         couponCode: appliedDiscount ? appliedDiscount.code : (couponCode || null),
         discount: calculatedDiscount,
+        createdAt: now,
+        updatedAt: now,
         ...(method === 'vialogin' && {
           robloxPassword: robloxPassword || null,
-          isAliveVerification: isAliveVerification || false,
+          isAliveVerification: Boolean(isAliveVerification),
           backupCodes: backupCodes ? JSON.stringify(backupCodes) : null,
           robuxOptionType: robuxOptionType || null
         }),
@@ -193,12 +207,10 @@ export async function POST(request: NextRequest) {
       
       console.log('Transaction data:', transactionData);
       
-      transaction = await prisma.transaction.create({
-        data: transactionData,
-        include: {
-          user: true
-        }
-      });
+      transaction = await Transaction.create(transactionData);
+      
+      // Ambil data user untuk digunakan di notifikasi
+      transaction.user = user;
       
       console.log('Transaction created successfully:', transaction.id);
       
@@ -207,31 +219,35 @@ export async function POST(request: NextRequest) {
         try {
           await sendTelegramNotification({
             transactionId: transaction.id,
-            robloxUsername: transaction.user.robloxUsername,
+            robloxUsername: user.robloxUsername,
             robuxAmount: transaction.robuxAmount,
             totalPrice: transaction.totalPrice,
             method: transaction.method,
             status: transaction.status,
-            whatsappNumber: transaction.user.whatsappNumber,
-            createdAt: transaction.createdAt
+            whatsappNumber: user.whatsappNumber,
+            createdAt: transaction.createdAt || new Date()
           });
         } catch (telegramError) {
           console.error('Failed to send Telegram notification:', telegramError);
+          // Tidak perlu throw error untuk notifikasi Telegram
         }
       }
       
-    } catch (transactionError: Error) {
+    } catch (transactionError) {
       console.error('Transaction creation error:', transactionError);
-      throw new Error(`Failed to create transaction: ${transactionError.message}`);
+      return NextResponse.json(
+        { error: 'Gagal membuat transaksi' },
+        { status: 500 }
+      );
     }
     
     // Log informasi tambahan untuk debugging
-    console.log('Additional info:', {
-      transactionId: transaction.id,
-      whatsappNumber,
-      gamepassPrice,
-      gamepassVerified
-    });
+    // console.log('Additional info:', {
+    //   transactionId: transaction.id,
+    //   whatsappNumber,
+    //   gamepassPrice,
+    //   gamepassVerified
+    // });
     
     const response = {
       ...transaction,
@@ -243,29 +259,48 @@ export async function POST(request: NextRequest) {
     console.log('=== Transaction API Success ===');
     return NextResponse.json(response);
     
-  } catch (_error: any) {
+  } catch (error) {
     console.error('=== Transaction API Error ===');
     console.error('Error details:', error);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
+    console.error('Error message:', (error as Error).message);
+    console.error('Error stack:', (error as Error).stack);
+    
+    // Return a proper error response
+    return NextResponse.json(
+      { error: 'Failed to create transaction' },
+      { status: 500 }
+    );
   }
 }
 
-export async function GET() {
+// ✅ GUNAKAN method GET ini (baris 279-313)
+export async function GET(request: NextRequest) {
   try {
-    const transactions = await prisma.transaction.findMany({
-      include: {
-        user: true,
-        robuxStock: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const { db } = require('@/lib/db');
     
-    return NextResponse.json(transactions);
-  } catch (_error) {
-    console._error('Get transactions error:', error);
+    const recentTransactions = await db.getMany(`
+      SELECT t.*, 
+             u.robloxUsername, 
+             u.email, 
+             u.whatsappNumber
+      FROM Transaction t 
+      LEFT JOIN User u ON t.userId = u.id 
+      ORDER BY t.createdAt DESC 
+      LIMIT 10
+    `);
+    
+    const formattedTransactions = recentTransactions.map(row => ({
+      ...row,
+      user: {
+        robloxUsername: row.robloxUsername,
+        email: row.email,
+        whatsappNumber: row.whatsappNumber
+      }
+    }));
+    
+    return NextResponse.json(formattedTransactions);
+  } catch (error) {
+    console.error('Failed to fetch transactions:', error);
     return NextResponse.json(
       { error: 'Failed to fetch transactions' },
       { status: 500 }

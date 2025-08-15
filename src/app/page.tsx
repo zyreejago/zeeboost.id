@@ -78,7 +78,6 @@ export default function Home() {
   // Fungsi untuk fetch avatar - mengikuti flow topup
   const fetchUserAvatar = async (username: string): Promise<string> => {
     try {
-      console.log('Fetching avatar for username:', username);
       
       // Step 1: Validasi username untuk mendapatkan userId (sama seperti di topup)
       const validateResponse = await fetch('/api/roblox/validate-username', {
@@ -92,7 +91,6 @@ export default function Home() {
       }
       
       const validateData = await validateResponse.json();
-      console.log('Validate response:', validateData);
       
       if (validateData.success) {
         // Step 2: Ambil thumbnail menggunakan userId (sama seperti di topup)
@@ -102,7 +100,6 @@ export default function Home() {
         
         if (thumbnailResponse.ok) {
           const thumbnailData = await thumbnailResponse.json();
-          console.log('Thumbnail response:', thumbnailData);
           
           if (thumbnailData.data && thumbnailData.data.length > 0 && thumbnailData.data[0].imageUrl) {
             return thumbnailData.data[0].imageUrl;
@@ -113,7 +110,6 @@ export default function Home() {
       // Fallback ke placeholder jika gagal (sama seperti di topup)
       return `https://via.placeholder.com/48x48/10b981/ffffff?text=${username.charAt(0).toUpperCase()}`;
     } catch (_error) {
-      console._error('Error fetching user avatar:', error);
       return `https://via.placeholder.com/48x48/10b981/ffffff?text=${username.charAt(0).toUpperCase()}`;
     }
   };
@@ -129,20 +125,20 @@ export default function Home() {
       }
       
       const transactions = await transactionsResponse.json();
-      console.log('Transactions data:', transactions);
+      // console.log('Transactions data:', transactions);
       
       const recentTrans = transactions.slice(0, 5);
       
       // Ambil avatar untuk setiap transaksi menggunakan robloxUsername dari database
       const transactionsWithAvatars = await Promise.all(
         recentTrans.map(async (transaction: any) => {
-          console.log('Processing transaction:', transaction);
+          // console.log('Processing transaction:', transaction);
           
-          // Ambil username dari user.robloxUsername (sesuai struktur database)
-          const username = transaction.user?.robloxUsername;
+          // Ubah dari transaction.user?.robloxUsername ke transaction.robloxUsername
+          const username = transaction.robloxUsername;
           
           if (username) {
-            console.log('Fetching avatar for:', username);
+            // console.log('Fetching avatar for:', username);
             const avatarUrl = await fetchUserAvatar(username);
             return { ...transaction, avatarUrl };
           }
@@ -155,7 +151,7 @@ export default function Home() {
         })
       );
       
-      console.log('Transactions with avatars:', transactionsWithAvatars);
+      // console.log('Transactions with avatars:', transactionsWithAvatars);
       setRecentTransactions(transactionsWithAvatars);
       
       // Fetch robux inventory from database
@@ -176,7 +172,7 @@ export default function Home() {
       setRobuxInventory(inventory);
       
     } catch (_error) {
-      console._error('Failed to fetch dashboard data:', error);
+      // console.error('Failed to fetch dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -256,7 +252,10 @@ export default function Home() {
                     <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                   </span>
                 </Link>
-                <button className="px-8 py-4 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary-50 transition-all duration-300">
+                <button 
+                  onClick={() => window.location.href = '/topup'}
+                  className="px-8 py-4 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary-50 transition-all duration-300"
+                >
                   Lihat Harga
                 </button>
               </div>
@@ -394,14 +393,12 @@ export default function Home() {
                                 {transaction.avatarUrl && !transaction.avatarUrl.includes('placeholder') ? (
                                   <Image 
                                     src={transaction.avatarUrl} 
-                                    alt={`${transaction.user.robloxUsername} avatar`}
+                                    alt={`${transaction.robloxUsername || 'User'} avatar`}
                                     width={48}
                                     height={48}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
-                                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                      if (fallback) fallback.style.display = 'flex';
                                     }}
                                   />
                                 ) : null}
@@ -409,12 +406,12 @@ export default function Home() {
                                   className="w-full h-full bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center text-white font-semibold text-sm absolute inset-0" 
                                   style={{display: transaction.avatarUrl && !transaction.avatarUrl.includes('placeholder') ? 'none' : 'flex'}}
                                 >
-                                  {transaction.user.robloxUsername.charAt(0).toUpperCase()}
+                                  {transaction.robloxUsername?.charAt(0)?.toUpperCase() || 'U'}
                                 </div>
                               </div>
                               <div className="ml-4">
                                 <div className="text-sm font-semibold text-gray-900">
-                                  {censorUsername(transaction.user.robloxUsername)}
+                                  {censorUsername(transaction.robloxUsername || 'Unknown User')}
                                 </div>
                                 {/* <div className="text-sm text-gray-500">
                                   {formatDate(transaction.createdAt)}

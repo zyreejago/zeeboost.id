@@ -98,7 +98,7 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
         alert('Gagal menyimpan banner!');
       }
     } catch (_error) {
-      console._error('Error saving banner:', error);
+      console.error('Error saving banner:', _error);
       alert('Terjadi kesalahan!');
     } finally {
       setIsLoading(false);
@@ -124,7 +124,7 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
         alert('Gagal menghapus banner!');
       }
     } catch (_error) {
-      console._error('Error deleting banner:', error);
+      console.error('Error deleting banner:', _error);
       alert('Terjadi kesalahan!');
     } finally {
       setIsLoading(false);
@@ -152,7 +152,7 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
         alert('Gagal mengubah status banner!');
       }
     } catch (_error) {
-      console._error('Error toggling banner status:', error);
+      console.error('Error toggling banner status:', _error);
       alert('Terjadi kesalahan!');
     } finally {
       setIsLoading(false);
@@ -217,6 +217,8 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
                   <Image 
                     src={imagePreview} 
                     alt="Preview" 
+                    width={128}
+                    height={128}
                     className="h-32 w-auto rounded border shadow-sm"
                   />
                 </div>
@@ -312,6 +314,8 @@ export default function BannerManagement({ banners, onRefresh }: BannerManagemen
                       <Image 
                         src={banner.imageUrl} 
                         alt={banner.title}
+                        width={96}
+                        height={64}
                         className="h-16 w-24 object-cover rounded border"
                         onError={(e) => {
                           e.currentTarget.src = 'https://via.placeholder.com/96x64/e5e7eb/9ca3af?text=No+Image';

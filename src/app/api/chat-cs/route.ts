@@ -165,7 +165,7 @@ Pertanyaan user: ${message}
     console.log("AI Response:", aiResponse);
     return NextResponse.json({ response: aiResponse });
   } catch (_error) {
-    console._error("AI Error:", error);
+    console.error("AI Error:", error);
     return NextResponse.json(
       { 
         response: "Halo! Saya AI Customer Service ZeeBoost. Maaf, terjadi kesalahan sistem. Silakan hubungi WhatsApp: +6287740517441 untuk bantuan langsung." 

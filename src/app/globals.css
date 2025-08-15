@@ -25,6 +25,9 @@
   /* Border & Ring */
   --border: #e2e8f0;
   --ring: var(--primary);
+  
+  /* Disable automatic dark mode */
+  color-scheme: light;
 }
 
 @theme inline {
@@ -54,6 +57,8 @@
   --font-sans: var(--font-poppins), system-ui, sans-serif;
 }
 
+/* Hapus atau comment out bagian dark mode ini */
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -63,6 +68,7 @@
     --border: #334155;
   }
 }
+*/
 
 * {
   border-color: var(--border);

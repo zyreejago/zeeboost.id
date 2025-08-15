@@ -49,7 +49,7 @@ export async function sendTelegramNotification(orderInfo: OrderInfo) {
       return false;
     }
   } catch (_error) {
-    console._error('Error sending Telegram notification:', error);
+    console.error('Error sending Telegram notification:', error);
     return false;
   }
 }

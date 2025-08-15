@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { Transaction, User, RobuxStock } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
 
 export async function PUT(request: NextRequest) {
@@ -21,23 +21,23 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
-    const updatedTransaction = await prisma.transaction.update({
-      where: { id: parseInt(transactionId) },
-      data: { status },
-      include: {
-        user: true,
-        robuxStock: true
-      }
-    });
+    const updatedTransaction = await Transaction.update(parseInt(transactionId), { status });
+    const transaction = await Transaction.findById(parseInt(transactionId));
+    const user = await User.findById(transaction.userId);
+    const robuxStock = await RobuxStock.findById(transaction.robuxStockId);
 
     return NextResponse.json({
       success: true,
-      transaction: updatedTransaction,
+      transaction: {
+        ...transaction,
+        user,
+        robuxStock
+      },
       message: `Status transaksi berhasil diubah menjadi ${status}`
     });
 
   } catch (_error) {
-    console._error('Error updating transaction status:', error);
+    console.error('Error updating transaction status:', _error);
     return NextResponse.json(
       { error: 'Failed to update transaction status' },
       { status: 500 }

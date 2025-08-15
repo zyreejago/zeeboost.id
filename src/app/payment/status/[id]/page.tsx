@@ -20,7 +20,7 @@ export default function PaymentStatusPage() {
           alert('Pembayaran berhasil! Robux akan segera ditambahkan ke akun Anda.');
         }
       } catch (_error) {
-        console._error('Error checking payment status:', error);
+        console.error('Error checking payment status:', error);
       } finally {
         setLoading(false);
       }

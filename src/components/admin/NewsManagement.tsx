@@ -90,7 +90,7 @@ export default function NewsManagement({
         throw new Error('Failed to upload image');
       }
     } catch (_error) {
-      console._error('Error uploading image:', error);
+      console.error('Error uploading image:', _error);
       alert('Gagal mengupload gambar!');
       return null;
     } finally {
@@ -102,27 +102,29 @@ export default function NewsManagement({
   const handleNewsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
       let finalImageUrl = newsForm.imageUrl;
-      
-      // Upload gambar jika ada file yang dipilih
+  
       if (selectedImage) {
         const uploadedImageUrl = await uploadImage(selectedImage);
         if (uploadedImageUrl) {
           finalImageUrl = uploadedImageUrl;
         }
       }
-
+  
       const response = await fetch('/api/admin/news', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // Important: Include cookies for authentication
         body: JSON.stringify({
           ...newsForm,
           imageUrl: finalImageUrl
         }),
       });
-
+  
       const data = await response.json();
       
       if (response.ok) {
@@ -134,8 +136,8 @@ export default function NewsManagement({
       } else {
         throw new Error(data.error || 'Gagal menambahkan news');
       }
-    } catch (_error) {
-      console._error('Error adding news:', error);
+    } catch (error) {
+      console.error('Error adding news:', error);
       alert(`Gagal menambahkan news: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
@@ -196,8 +198,8 @@ export default function NewsManagement({
         throw new Error(data.error || 'Gagal memperbarui news');
       }
     } catch (_error) {
-      console._error('Error updating news:', error);
-      alert(`Gagal memperbarui news: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error updating news:', _error);
+      alert(`Gagal memperbarui news: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -234,8 +236,8 @@ export default function NewsManagement({
         throw new Error(data.error || 'Gagal menghapus news');
       }
     } catch (_error) {
-      console._error('Error deleting news:', error);
-      alert(`Gagal menghapus news: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error deleting news:', _error);
+      alert(`Gagal menghapus news: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
     }
   };
 
@@ -275,7 +277,13 @@ export default function NewsManagement({
               />
               {imagePreview && (
                 <div className="mt-2">
-                  <Image src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />
+                  <Image 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 object-cover rounded-lg" 
+                  />
                 </div>
               )}
             </div>
@@ -375,11 +383,23 @@ export default function NewsManagement({
                 />
                 {editImagePreview ? (
                   <div className="mt-2">
-                    <Image src={editImagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-lg" />
+                    <Image 
+                      src={editImagePreview} 
+                      alt="Preview" 
+                      width={80}
+                      height={80}
+                      className="h-20 w-20 object-cover rounded-lg" 
+                    />
                   </div>
                 ) : editForm.imageUrl && (
                   <div className="mt-2">
-                    <Image src={editForm.imageUrl} alt="Current" className="h-20 w-20 object-cover rounded-lg" />
+                    <Image 
+                      src={editForm.imageUrl} 
+                      alt="Current" 
+                      width={80}
+                      height={80}
+                      className="h-20 w-20 object-cover rounded-lg" 
+                    />
                     <p className="text-xs text-gray-500 mt-1">Gambar saat ini</p>
                   </div>
                 )}
@@ -488,7 +508,13 @@ export default function NewsManagement({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {item.imageUrl && (
-                        <Image className="h-10 w-10 rounded-lg object-cover mr-4" src={item.imageUrl} alt="" />
+                        <Image 
+                          className="h-10 w-10 rounded-lg object-cover mr-4" 
+                          src={item.imageUrl} 
+                          alt="" 
+                          width={40}
+                          height={40}
+                        />
                       )}
                       <div>
                         <div className="text-sm font-medium text-gray-900">{item.title}</div>
