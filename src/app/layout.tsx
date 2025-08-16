@@ -67,14 +67,14 @@ export const metadata: Metadata = {
     siteName: "ZeeBoost",
     images: [
       {
-        url: '/logo.png',
+        url: 'https://zeeboost.com/logo.png',
         width: 1200,
         height: 630,
         alt: 'ZeeBoost Logo - Platform Topup Robux Terpercaya',
         type: 'image/png',
       },
       {
-        url: '/logo-512.png',
+        url: 'https://zeeboost.com/logo-512.png',
         width: 512,
         height: 512,
         alt: 'ZeeBoost Logo',
@@ -89,7 +89,7 @@ export const metadata: Metadata = {
     title: 'ZeeBoost - Topup Robux Terpercaya & Termurah di Indonesia',
     description: 'Platform topup Robux terbaik di Indonesia dengan harga terjangkau, proses cepat, dan 100% aman.',
     images: {
-      url: '/logo.png',
+      url: 'https://zeeboost.com/logo.png',
       alt: 'ZeeBoost Logo - Platform Topup Robux Terpercaya, segera percayakan roblox kamu di zeeboost',
     },
   },

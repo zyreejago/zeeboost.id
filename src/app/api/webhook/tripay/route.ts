@@ -194,13 +194,27 @@ export async function POST(request: Request) {
     }
 
     // ✅ 7. EXTRACT TRANSACTION DATA
-    const { reference, merchant_ref, status, payment_method, total_amount, paid_at } = payload;
+    const { reference, merchant_ref, status, payment_method, total_amount, paid_at, note } = payload;
     
+    // 🔧 HANDLE TEST CALLBACK
+    if (!merchant_ref && !reference && note && note.includes('Test Callback')) {
+      if (logger) {
+        logger.logWebhook('INFO', 'Test callback detected', { note });
+      }
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Test callback received successfully'
+      }, { status: 200 });
+    }
+    
+    // Validasi merchant_ref untuk transaksi real
     if (!merchant_ref) {
       if (logger) {
         logger.logWebhook('ERROR', 'No merchant reference provided', {
           reference,
-          merchant_ref
+          merchant_ref,
+          note
         });
       }
       
@@ -227,17 +241,17 @@ export async function POST(request: Request) {
     let transaction: any = null;
     
     try {
-      // Cari berdasarkan merchant_ref terlebih dahulu
-      transaction = await Transaction.findByReference(merchant_ref);
+      // 🔥 UBAH: Cari berdasarkan merchant_ref menggunakan method baru
+      transaction = await Transaction.findByMerchantRef(merchant_ref);
       
-      // Jika tidak ditemukan dan merchant_ref adalah angka, coba cari berdasarkan ID
-      if (!transaction && !isNaN(Number(merchant_ref))) {
-        transaction = await Transaction.findById(parseInt(merchant_ref));
-      }
-      
-      // Jika masih tidak ditemukan, coba cari berdasarkan reference Tripay
+      // Jika tidak ditemukan, coba cari berdasarkan paymentReference
       if (!transaction && reference) {
         transaction = await Transaction.findByReference(reference);
+      }
+      
+      // Jika masih tidak ditemukan dan merchant_ref adalah angka, coba cari berdasarkan ID
+      if (!transaction && !isNaN(Number(merchant_ref))) {
+        transaction = await Transaction.findById(parseInt(merchant_ref));
       }
       
       if (logger) {

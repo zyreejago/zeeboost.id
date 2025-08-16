@@ -76,7 +76,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
         alert(result.error || 'Gagal mengupdate status transaksi');
       }
     } catch (_error) {
-      console.error('Error updating transaction status:', error);
+      console.error('Error updating transaction status:', _error);
       alert('Terjadi kesalahan saat mengupdate status transaksi');
     } finally {
       setIsUpdatingStatus(false);
@@ -203,7 +203,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
         alert(result.error || 'Gagal menghapus transaksi');
       }
     } catch (_error) {
-      console.error('Error deleting transactions:', error);
+      console.error('Error deleting transactions:', _error);
       alert('Terjadi kesalahan saat menghapus transaksi');
     } finally {
       setIsDeleting(false);
@@ -238,7 +238,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
         alert(result.error || 'Gagal menghapus transaksi lama');
       }
     } catch (_error) {
-      console.error('Error auto-cleaning transactions:', error);
+      console.error('Error auto-cleaning transactions:', _error);
       alert('Terjadi kesalahan saat menghapus transaksi lama');
     } finally {
       setIsDeleting(false);
@@ -459,6 +459,7 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
                         className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
                         <option value="pending">Pending</option>
+                        <option value="processing">Sedang Diproses</option>
                         <option value="completed">Selesai</option>
                         <option value="failed">Gagal</option>
                       </select>

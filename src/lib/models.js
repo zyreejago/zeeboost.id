@@ -45,6 +45,9 @@ const Transaction = {
     return await db.getMany('SELECT * FROM Transaction WHERE userId = ? ORDER BY createdAt DESC', [userId]);
   },
   // ✅ TAMBAHKAN METHOD INI
+  findByMerchantRef: async (merchantRef) => {
+    return await db.getOne('SELECT * FROM Transaction WHERE merchantRef = ?', [merchantRef]);
+  },
   findByReference: async (reference) => {
     return await db.getOne('SELECT * FROM Transaction WHERE paymentReference = ?', [reference]);
   },

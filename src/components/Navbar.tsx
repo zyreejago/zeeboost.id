@@ -85,16 +85,16 @@ export default function Navbar() {
               >
                 Cara Topup
               </Link>
-              <Link 
+              {/* <Link 
                 href="/kontak" 
                 className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Kontak
-              </Link>
+              </Link> */}
               <Link 
                 href="/topup" 
-                className="block mx-3 mt-2 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors text-center"
+                className="block mx-3 mt-2 bg-primary-dark text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Mulai Topup

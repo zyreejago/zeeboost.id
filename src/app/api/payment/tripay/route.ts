@@ -42,8 +42,12 @@ export async function POST(request: Request) {
     
     // Implementasi integrasi dengan Tripay
     try {
+      // Generate unique merchant reference
+      const timestamp = Date.now();
+      const uniqueMerchantRef = `ZB-${transactionId}-${timestamp}`;
+      
       // Generate signature
-      const signatureString = merchantCode + transactionId + amount;
+      const signatureString = merchantCode + uniqueMerchantRef + amount;
       const signature = crypto.createHmac('sha256', privateKey)
         .update(signatureString)
         .digest('hex');
@@ -51,7 +55,7 @@ export async function POST(request: Request) {
       // Create the request payload
       const requestPayload = {
         method: paymentMethod,
-        merchant_ref: transactionId,
+        merchant_ref: uniqueMerchantRef, // ✅ Gunakan format yang lebih unik
         amount: amount,
         customer_name: customerName,
         customer_email: customerEmail,
@@ -101,10 +105,10 @@ export async function POST(request: Request) {
       const tripayData = await tripayResponse.json();
       
       if (tripayData.success) {
-        // Update transaction dengan reference dari Tripay
+        // Update transaction dengan reference dari Tripay DAN merchant_ref
         await Transaction.update(transactionId, {
-          paymentReference: tripayData.data.reference
-          // Removed paymentUrl since it doesn't exist in the schema
+          paymentReference: tripayData.data.reference,
+          merchantRef: uniqueMerchantRef  // 🔥 TAMBAHKAN INI
         });
         
         return NextResponse.json({
@@ -113,6 +117,7 @@ export async function POST(request: Request) {
           transaction: {
             ...transaction,
             paymentReference: tripayData.data.reference,
+            merchantRef: uniqueMerchantRef,  // 🔥 TAMBAHKAN INI
             paymentUrl: tripayData.data.checkout_url
           }
         });
