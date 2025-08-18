@@ -113,6 +113,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/gamepass-guide" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
+                  <i className="fas fa-gamepad w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
+                  Cara Buat Gamepass
+                </Link>
+              </li>
+              <li>
+                <Link href="/backup-code-guide" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
+                  <i className="fas fa-key w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
+                  Backup Code Guide
+                </Link>
+              </li>
+              <li>
                 <Link href="/terms" className="group flex items-center text-gray-300 hover:text-primary transition-colors duration-300">
                   <i className="fas fa-file-contract w-4 h-4 mr-3 group-hover:scale-110 transition-transform"></i>
                   Syarat & Ketentuan

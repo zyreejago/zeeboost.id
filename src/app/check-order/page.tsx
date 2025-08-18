@@ -8,12 +8,11 @@ import Footer from '@/components/Footer';
 interface Transaction {
   id: number;
   robuxAmount: number;
-  // totalPrice: number;
-  // finalPrice?: number;
   method: string;
   status: string;
   createdAt: string;
   paymentProof?: string;
+  paymentReference?: string;
   user: {
     robloxUsername: string;
   };
@@ -31,6 +30,7 @@ export default function CheckOrderPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [retryingPayment, setRetryingPayment] = useState<number | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,12 +63,50 @@ export default function CheckOrderPage() {
         setError(data.error || 'Terjadi kesalahan saat mengecek pesanan');
         setHasSearched(true);
       }
-    } catch (_error) {
-      console.error('Error checking order:', error);
+    } catch (err) {
+      console.error('Error checking order:', err);
       setError('Terjadi kesalahan koneksi');
       setHasSearched(true);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const isPaymentStillValid = (createdAt: string): boolean => {
+    const createdTime = new Date(createdAt).getTime();
+    const currentTime = new Date().getTime();
+    const timeDiff = currentTime - createdTime;
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    
+    // Default 24 jam jika tidak ada expired_time dari Tripay
+    return hoursDiff < 24;
+  };
+
+  const handleRetryPayment = async (transactionId: number) => {
+    setRetryingPayment(transactionId);
+    
+    try {
+      const response = await fetch('/api/payment/retry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transactionId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Redirect ke URL pembayaran baru
+        window.location.href = data.paymentUrl;
+      } else {
+        setError(data.error || 'Gagal membuat pembayaran ulang');
+      }
+    } catch (err) {
+      console.error('Error retrying payment:', err);
+      setError('Terjadi kesalahan saat membuat pembayaran ulang');
+    } finally {
+      setRetryingPayment(null);
     }
   };
 
@@ -99,14 +137,6 @@ export default function CheckOrderPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const _formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(price);
   };
 
   return (
@@ -231,16 +261,6 @@ export default function CheckOrderPage() {
                       </p>
                     </div>
                     
-                    {/* <div>
-                      <p className="text-sm text-gray-500 mb-1">Total Harga</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {transaction.finalPrice ? 
-                          formatPrice(transaction.finalPrice) : 
-                          formatPrice(transaction.totalPrice)
-                        }
-                      </p>
-                    </div> */}
-                    
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Metode</p>
                       <p className="text-lg font-semibold text-gray-900 capitalize">
@@ -250,10 +270,36 @@ export default function CheckOrderPage() {
                   </div>
 
                   {transaction.status === 'pending' && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        <strong>Menunggu Pembayaran:</strong> Silakan lakukan pembayaran sesuai instruksi yang diberikan.
-                      </p>
+                    <div className="mt-4 space-y-3">
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Menunggu Pembayaran:</strong> Silakan lakukan pembayaran sesuai instruksi yang diberikan.
+                        </p>
+                      </div>
+                      
+                      {/* Cek apakah masih dalam batas waktu */}
+                      {isPaymentStillValid(transaction.createdAt) ? (
+                        <button
+                          onClick={() => handleRetryPayment(transaction.id)}
+                          disabled={retryingPayment === transaction.id}
+                          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {retryingPayment === transaction.id ? (
+                            <div className="flex items-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Memproses...
+                            </div>
+                          ) : (
+                            'Bayar Sekarang'
+                          )}
+                        </button>
+                      ) : (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800">
+                            <strong>Waktu Pembayaran Habis:</strong> Silakan buat pesanan baru.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
 

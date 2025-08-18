@@ -957,6 +957,21 @@ export default function ViaLoginTopup() {
             </select>
           )}
         </div>
+
+        {/* reCAPTCHA */}
+        <div className="mb-6">
+          <ReCaptcha
+            siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+            onVerify={handleRecaptchaVerify}
+            onExpired={handleRecaptchaExpired}
+            onError={handleRecaptchaError}
+            instanceId="vialogin"
+          />
+          {recaptchaError && (
+            <p className="text-red-500 text-sm mt-2 text-center">{recaptchaError}</p>
+          )}
+        </div>
+
         
         {/* Price Summary */}
         {selectedRobuxOption && (
@@ -982,20 +997,6 @@ export default function ViaLoginTopup() {
           </div>
         )}
         
-        {/* reCAPTCHA */}
-        <div className="mb-6">
-          <ReCaptcha
-            siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-            onVerify={handleRecaptchaVerify}
-            onExpired={handleRecaptchaExpired}
-            onError={handleRecaptchaError}
-            instanceId="vialogin"
-          />
-          {recaptchaError && (
-            <p className="text-red-500 text-sm mt-2 text-center">{recaptchaError}</p>
-          )}
-        </div>
-
         {/* Submit Button */}
         <button
           onClick={handleTopup}

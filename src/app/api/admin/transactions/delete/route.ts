@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Transaction } from '@/lib/models';
 import { verifyAdminToken } from '@/lib/auth';
+import { db } from '@/lib/db';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -15,30 +16,31 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid transaction IDs' }, { status: 400 });
     }
 
-    let conditions: any = { ids: transactionIds };
-
-    // Hanya izinkan hapus transaksi pending dan failed
+    // Validasi status yang diizinkan untuk dihapus
+    let allowedStatuses = ['pending', 'failed'];
     if (deleteType === 'pending') {
-      conditions.status = 'pending';
+      allowedStatuses = ['pending'];
     } else if (deleteType === 'failed') {
-      conditions.status = 'failed';
-    } else if (deleteType === 'pending_failed') {
-      conditions.status = ['pending', 'failed'];
-    } else {
-      // Default: hanya pending dan failed
-      conditions.status = ['pending', 'failed'];
+      allowedStatuses = ['failed'];
     }
 
-    const deletedTransactions = await Transaction.deleteMany(conditions);
+    // Buat WHERE clause untuk multiple IDs dan status
+    const placeholders = transactionIds.map(() => '?').join(', ');
+    const statusPlaceholders = allowedStatuses.map(() => '?').join(', ');
+    const whereClause = `id IN (${placeholders}) AND status IN (${statusPlaceholders})`;
+    const whereParams = [...transactionIds, ...allowedStatuses];
+
+    // Hapus transaksi menggunakan db.remove
+    const deletedCount = await db.remove('Transaction', whereClause, whereParams);
 
     return NextResponse.json({
       success: true,
-      deletedCount: deletedTransactions.count,
-      message: `${deletedTransactions.count} transaksi berhasil dihapus`
+      deletedCount: deletedCount,
+      message: `${deletedCount} transaksi berhasil dihapus`
     });
 
-  } catch (_error) {
-    console.error('Error deleting transactions:', _error);
+  } catch (error) {
+    console.error('Error deleting transactions:', error);
     return NextResponse.json(
       { error: 'Failed to delete transactions' },
       { status: 500 }
@@ -58,22 +60,24 @@ export async function POST(request: NextRequest) {
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateString = cutoffDate.toISOString().slice(0, 19).replace('T', ' ');
 
-    const deletedTransactions = await prisma.transaction.deleteMany({
-      where: {
-        status: { in: status },
-        createdAt: { lt: cutoffDate }
-      }
-    });
+    // Buat WHERE clause untuk status dan tanggal
+    const statusPlaceholders = status.map(() => '?').join(', ');
+    const whereClause = `status IN (${statusPlaceholders}) AND createdAt < ?`;
+    const whereParams = [...status, cutoffDateString];
+
+    // Hapus transaksi lama menggunakan db.remove
+    const deletedCount = await db.remove('Transaction', whereClause, whereParams);
 
     return NextResponse.json({
       success: true,
-      deletedCount: deletedTransactions.count,
-      message: `${deletedTransactions.count} transaksi lama berhasil dihapus`
+      deletedCount: deletedCount,
+      message: `${deletedCount} transaksi lama berhasil dihapus`
     });
 
-  } catch (_error) {
-    console.error('Error auto-deleting transactions:', _error);
+  } catch (error) {
+    console.error('Error auto-deleting transactions:', error);
     return NextResponse.json(
       { error: 'Failed to auto-delete transactions' },
       { status: 500 }

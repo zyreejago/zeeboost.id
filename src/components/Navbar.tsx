@@ -71,20 +71,12 @@ export default function Navbar() {
               >
                 Beranda
               </Link>
-              <Link 
-                href="/topup" 
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Topup Robux
-              </Link>
-              <Link 
-                href="/cara-topup" 
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Cara Topup
-              </Link>
+              <Link href="/news" className="block px-3 py-2 text-foreground hover:text-primary transition-colors">
+              Berita
+            </Link>
+              <Link href="/check-order" className="block px-3 py-2 text-foreground hover:text-primary transition-colors">
+              Cek Pesanan
+            </Link>
               {/* <Link 
                 href="/kontak" 
                 className="block px-3 py-2 text-foreground hover:text-primary transition-colors"

@@ -286,7 +286,6 @@ export async function GET(request: NextRequest) {
       FROM Transaction t 
       LEFT JOIN User u ON t.userId = u.id 
       ORDER BY t.createdAt DESC 
-      LIMIT 10
     `);
     
     const formattedTransactions = recentTransactions.map(row => ({

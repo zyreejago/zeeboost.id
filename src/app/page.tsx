@@ -125,9 +125,13 @@ export default function Home() {
       }
       
       const transactions = await transactionsResponse.json();
-      // console.log('Transactions data:', transactions);
       
-      const recentTrans = transactions.slice(0, 5);
+      // Filter hanya transaksi dengan status 'processing' dan 'completed'
+      const filteredTransactions = transactions.filter((transaction: any) => 
+        transaction.status === 'processing' || transaction.status === 'completed'
+      );
+      
+      const recentTrans = filteredTransactions.slice(0, 5);
       
       // Ambil avatar untuk setiap transaksi menggunakan robloxUsername dari database
       const transactionsWithAvatars = await Promise.all(
@@ -151,7 +155,6 @@ export default function Home() {
         })
       );
       
-      // console.log('Transactions with avatars:', transactionsWithAvatars);
       setRecentTransactions(transactionsWithAvatars);
       
       // Fetch robux inventory from database
@@ -214,8 +217,31 @@ export default function Home() {
     }
   };
 
+  // Tambahkan FAQ Schema untuk SEO
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqData.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+  
+  // Di dalam return statement, tambahkan sebelum <Navbar />
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
+      {/* FAQ Schema untuk SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema)
+        }}
+      />
+      
       <Navbar />
       <Banner />
       
