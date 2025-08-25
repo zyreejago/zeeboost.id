@@ -124,7 +124,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
   }
 
   const relatedNews = await getRelatedNews(news.id);
-  const _formattedDate = new Date(news.createdAt).toLocaleDateString('id-ID', {
+  const formattedDate = new Date(news.createdAt).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

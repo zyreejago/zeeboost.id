@@ -555,10 +555,218 @@ export default function TransactionList({ transactions, onRefresh }: Transaction
         </div>
       )}
       
-      {/* Modal Detail - sisanya tetap sama seperti kode asli */}
+      {/* Modal Detail */}
       {showDetailModal && selectedTransaction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          {/* Modal content tetap sama */}
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header Modal */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Detail Transaksi #{selectedTransaction.id}
+              </h3>
+              <button
+                onClick={closeDetailModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Content Modal */}
+            <div className="p-6 space-y-6">
+              {/* Informasi User */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Informasi User */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-900 border-b pb-2">Informasi User</h4>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Username Roblox:</span>
+                    <p className="text-sm text-gray-900 font-medium">{selectedTransaction.user.robloxUsername}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Email:</span>
+                    <p className="text-sm text-gray-900">{selectedTransaction.user.email || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">WhatsApp:</span>
+                    <p className="text-sm text-gray-900">{selectedTransaction.user.whatsappNumber || '-'}</p>
+                  </div>
+                  
+                  {/* Informasi Login */}
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <h5 className="text-md font-semibold text-yellow-800 mb-3">Informasi Login User</h5>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-yellow-700">Password Roblox:</span>
+                        <p className="text-sm text-gray-900 font-mono bg-white p-2 rounded border">
+                          {selectedTransaction.robloxPassword || 'Tidak tersedia'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-yellow-700">Backup Codes:</span>
+                        {selectedTransaction.backupCodes ? (
+                          <div className="bg-white p-2 rounded border">
+                            {parseBackupCodes(selectedTransaction.backupCodes).map((code, index) => (
+                              <div key={index} className="text-sm font-mono text-gray-900">
+                                {index + 1}. {code}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">Tidak ada backup codes</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informasi Transaksi */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">Informasi Transaksi</h4>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Jumlah Robux:</span>
+                      <p className="text-sm text-gray-900 font-semibold text-primary-600">
+                        {selectedTransaction.robuxAmount.toLocaleString()} R$
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Harga Total:</span>
+                      <p className="text-sm text-gray-900">
+                        {selectedTransaction.finalPrice ? (
+                          <>
+                            <span className="line-through text-gray-400">
+                              Rp {(selectedTransaction.robuxStock?.price || selectedTransaction.totalPrice).toLocaleString()}
+                            </span>
+                            <span className="ml-2 text-green-600 font-semibold">
+                              Rp {selectedTransaction.finalPrice.toLocaleString()}
+                            </span>
+                          </>
+                        ) : (
+                          <span>Rp {selectedTransaction.totalPrice.toLocaleString()}</span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Metode:</span>
+                      <p className="text-sm text-gray-900 capitalize">{selectedTransaction.method}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Status:</span>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        selectedTransaction.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        selectedTransaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        selectedTransaction.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedTransaction.status === 'completed' ? 'Selesai' :
+                         selectedTransaction.status === 'pending' ? 'Pending' :
+                         selectedTransaction.status === 'processing' ? 'Sedang Diproses' : 'Gagal'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informasi Gamepass */}
+              {selectedTransaction.method === 'gamepass' && (
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">Informasi Gamepass</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Gamepass ID:</span>
+                      <p className="text-sm text-gray-900">{extractGamepassId(selectedTransaction) || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">URL Gamepass:</span>
+                      <p className="text-sm text-gray-900 break-all">
+                        {selectedTransaction.gamepassUrl || '-'}
+                      </p>
+                    </div>
+                    {createGamepassLink(selectedTransaction) && (
+                      <div className="md:col-span-2">
+                        <a
+                          href={createGamepassLink(selectedTransaction)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors"
+                        >
+                          <i className="fas fa-external-link-alt mr-2"></i>
+                          Buka Gamepass di Roblox
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Backup Codes */}
+              {selectedTransaction.backupCodes && (
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">Backup Codes</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {parseBackupCodes(selectedTransaction.backupCodes).map((code, index) => (
+                        <div key={index} className="bg-white p-2 rounded border text-center font-mono text-sm">
+                          {code}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Informasi Waktu */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Informasi Waktu</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Dibuat:</span>
+                    <p className="text-sm text-gray-900">
+                      {new Date(selectedTransaction.createdAt).toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Diperbarui:</span>
+                    <p className="text-sm text-gray-900">
+                      {new Date(selectedTransaction.updatedAt).toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Update Status */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">Update Status</h4>
+                <div className="flex items-center space-x-4">
+                  <select
+                    value={selectedTransaction.status}
+                    onChange={(e) => updateTransactionStatus(selectedTransaction.id, e.target.value)}
+                    disabled={isUpdatingStatus}
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="processing">Sedang Diproses</option>
+                    <option value="completed">Selesai</option>
+                    <option value="failed">Gagal</option>
+                  </select>
+                  {isUpdatingStatus && (
+                    <div className="text-sm text-gray-500">Mengupdate...</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <button
+                onClick={closeDetailModal}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

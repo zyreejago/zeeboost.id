@@ -214,8 +214,8 @@ export async function POST(request: NextRequest) {
       
       console.log('Transaction created successfully:', transaction.id);
       
-      // Kirim notifikasi Telegram untuk order via login
-      if (method === 'vialogin') {
+      // Kirim notifikasi Telegram untuk order via login dan gamepass
+      if (method === 'vialogin' || method === 'gamepass') {
         try {
           await sendTelegramNotification({
             transactionId: transaction.id,

@@ -5,9 +5,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zeeboost.com';
   
   // Ambil semua berita yang dipublikasikan
-  const news = await News.getPublished();
+  const newsResult = await News.getPublished();
+  const news = Array.isArray(newsResult) ? newsResult : [];
   
-  const newsUrls = news.map((item) => ({
+  const newsUrls = news.map((item: any) => ({
     url: `${baseUrl}/news/${item.id}`,
     lastModified: new Date(item.updatedAt || item.publishedAt),
     changeFrequency: 'weekly' as const,
@@ -35,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/topup/vialogin`,
+      url: `${baseUrl}/topup/vialogin`, 
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.9,

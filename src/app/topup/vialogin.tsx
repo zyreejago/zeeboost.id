@@ -585,7 +585,7 @@ export default function ViaLoginTopup() {
             Password Roblox
           </label>
           <input
-            type="password"
+            type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Masukkan password Roblox"

@@ -13,6 +13,7 @@ import BannerManagement from '@/components/admin/BannerManagement';
 import DiscountManagement from '@/components/admin/DiscountManagement';
 import ReportManagement from '@/components/admin/ReportManagement';
 import RobuxThemesManagement from '@/components/admin/RobuxThemesManagement';
+import ReviewManagement from '@/components/admin/ReviewManagement';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
             robuxStock={robuxStock}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
-            onRefresh={fetchData} // Ubah dari fetchData menjadi onRefresh
+            onRefresh={fetchData}
           />
         );
       case 'robux-themes':
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
             news={news}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
-            onRefresh={fetchData} // Ubah dari fetchData menjadi onRefresh
+            onRefresh={fetchData}
           />
         );
       case 'discounts':
@@ -84,6 +85,8 @@ export default function AdminDashboard() {
             onRefresh={fetchData}
           />
         );
+      case 'reviews':
+        return <ReviewManagement />;
       case 'reports':
         return <ReportManagement transactions={transactions} />;
       default:

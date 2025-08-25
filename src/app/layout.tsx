@@ -25,7 +25,32 @@ export const metadata: Metadata = {
     "zeeboost topup robux",
     "beli robux online",
     "topup roblox indonesia",
-    "robux generator legal"
+    "robux generator legal",
+    "topup robux termurah indonesia",
+    "beli robux murah mulai 5000 rupiah",
+    "topup robux cepat 1-30 menit",
+    "situs topup robux terpercaya indonesia",
+    "cara topup robux murah dan aman",
+    "zeeboost topup robux termurah",
+    "beli robux online terpercaya indonesia",
+    "topup roblox murah proses cepat",
+    "harga topup robux termurah 2024",
+    "platform topup robux terbaik indonesia",
+    "topup robux via qris dana ovo gopay",
+    "beli robux murah virtual account",
+    "topup robux gamepass terpercaya",
+    "cara beli robux murah di indonesia",
+    "situs jual robux termurah dan aman",
+    "topup robux gamepass murah",
+    "beli robux gamepass termurah",
+    "topup robux gamepass cepat",
+    "cara topup robux gamepass murah",
+    "situs topup robux gamepass termurah",
+    "topup robux gamepass termurah indonesia",
+    "beli robux gamepass murah indonesia",
+    "topup robux gamepass cepat indonesia",
+    "cara topup robux gamepass murah indonesia",
+    "situs topup robux gamepass termurah indonesia",
   ],
   authors: [{ name: "ZeeBoost" }],
   creator: "ZeeBoost",
@@ -71,7 +96,7 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: "https://zeeboost.com",
     title: "ZeeBoost - Topup Robux Terpercaya & Termurah di Indonesia",
-    description: "Platform topup Robux terbaik di Indonesia dengan harga terjangkau, proses cepat, dan 100% aman. Dapatkan Robux untuk game Roblox favorit Anda sekarang juga!",
+    description: "Platform topup Robux terbaik di Indonesia dengan harga terjangkau, proses cepat, dan 100% aman.",
     siteName: "ZeeBoost",
     images: [
       {
@@ -82,10 +107,10 @@ export const metadata: Metadata = {
         type: 'image/png',
       },
       {
-        url: 'https://zeeboost.com/logo-512.png',
-        width: 512,
-        height: 512,
-        alt: 'ZeeBoost Logo',
+        url: 'https://zeeboost.com/header_zeeboost.png',
+        width: 800,
+        height: 400,
+        alt: 'ZeeBoost Header',
         type: 'image/png',
       },
     ],
@@ -131,6 +156,19 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17486411883"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-17486411883');
+            `,
+          }}
+        />
+        
         {/* Favicon untuk kompatibilitas maksimal */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/logo-32.png" />
@@ -163,7 +201,7 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Structured Data untuk SEO */}
-        // Tambahkan LocalBusiness schema
+        {/* LocalBusiness schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -223,7 +261,7 @@ export default function RootLayout({
         />
         
         {/* BreadcrumbList Schema */}
-        // Tambahkan review schema untuk kredibilitas
+        {/* Review schema untuk kredibilitas */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -232,6 +270,11 @@ export default function RootLayout({
               "@type": "Product",
               "name": "ZeeBoost Topup Robux",
               "description": "Layanan topup Robux terpercaya di Indonesia",
+              "image": [
+                "https://zeeboost.com/favicon.ico",
+                "https://zeeboost.com/header_zeeboost.png",
+                // "https://zeeboost.com/1.png"
+              ],
               "brand": {
                 "@type": "Brand",
                 "name": "ZeeBoost"
@@ -246,9 +289,70 @@ export default function RootLayout({
               "offers": {
                 "@type": "Offer",
                 "priceCurrency": "IDR",
+                "price": "5000",
                 "lowPrice": "5000",
                 "highPrice": "500000",
-                "availability": "https://schema.org/InStock"
+                "availability": "https://schema.org/InStock",
+                "shippingDetails": {
+                  "@type": "OfferShippingDetails",
+                  "shippingRate": {
+                    "@type": "MonetaryAmount",
+                    "value": "0",
+                    "currency": "IDR"
+                  },
+                  "deliveryTime": {
+                    "@type": "ShippingDeliveryTime",
+                    "handlingTime": {
+                      "@type": "QuantitativeValue",
+                      "minValue": 1,
+                      "maxValue": 30,
+                      "unitCode": "MIN"
+                    }
+                  }
+                },
+                "hasMerchantReturnPolicy": {
+                  "@type": "MerchantReturnPolicy",
+                  "applicableCountry": "ID",
+                  "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                  "merchantReturnDays": 7,
+                  "returnMethod": "https://schema.org/ReturnByMail"
+                }
+              },
+              "category": "Digital Services",
+              "sku": "ZEEBOOST-ROBUX",
+              "mpn": "ZB-ROBUX-001",
+              "review": [
+                {
+                  "@type": "Review",
+                  "reviewRating": {
+                    "@type": "Rating",
+                    "ratingValue": "5",
+                    "bestRating": "5"
+                  },
+                  "author": {
+                    "@type": "Person",
+                    "name": "Ahmad S."
+                  },
+                  "reviewBody": "Pelayanan sangat cepat dan terpercaya. Robux langsung masuk dalam hitungan menit!"
+                },
+                {
+                  "@type": "Review",
+                  "reviewRating": {
+                    "@type": "Rating",
+                    "ratingValue": "5",
+                    "bestRating": "5"
+                  },
+                  "author": {
+                    "@type": "Person",
+                    "name": "Sari M."
+                  },
+                  "reviewBody": "Harga paling murah dan proses sangat mudah. Recommended!"
+                }
+              ],
+              "seller": {
+                "@type": "Organization",
+                "name": "ZeeBoost",
+                "url": "https://zeeboost.com"
               }
             })
           }}
@@ -309,6 +413,23 @@ export default function RootLayout({
                   "name": "Syarat & Ketentuan",
                   "item": "https://zeeboost.com/terms"
                 }
+              ]
+            })
+          }}
+        />
+        {/* Organization Schema untuk Logo */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "ZeeBoost",
+              "url": "https://zeeboost.com",
+              "logo": "https://zeeboost.com/logo.png",
+              "description": "Platform topup Robux terpercaya dan termurah di Indonesia",
+              "sameAs": [
+                "https://zeeboost.com"
               ]
             })
           }}

@@ -30,6 +30,7 @@ export default function Sidebar({
     { id: 'banners', name: 'Banner', icon: 'fas fa-image' },
     { id: 'news', name: 'News', icon: 'fas fa-newspaper' },
     { id: 'discounts', name: 'Discount', icon: 'fas fa-tags' },
+    { id: 'reviews', name: 'Review', icon: 'fas fa-star' },
   ];
 
   return (
