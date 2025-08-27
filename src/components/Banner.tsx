@@ -15,6 +15,7 @@ export default function Banner() {
   const [banners, setBanners] = useState<BannerData[]>([]);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   useEffect(() => {
     fetchBanners();
@@ -24,6 +25,7 @@ export default function Banner() {
     if (banners.length > 1) {
       const interval = setInterval(() => {
         setCurrentBanner((prev) => (prev + 1) % banners.length);
+        setImageLoaded(false); // Reset untuk banner berikutnya
       }, 4000);
       return () => clearInterval(interval);
     }
@@ -35,7 +37,7 @@ export default function Banner() {
       const response = await fetch('/api/banners');
       const data = await response.json();
       setBanners(data.filter((banner: BannerData) => banner.isActive));
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to fetch banners:', error);
     } finally {
       setIsLoading(false);
@@ -89,13 +91,32 @@ export default function Banner() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="relative overflow-hidden rounded-xl shadow-lg bg-gray-100">
+        {/* Placeholder blur saat loading */}
+        {!imageLoaded && banner.imageUrl && (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse rounded-xl" />
+        )}
+        
         {banner.imageUrl ? (
           <Image
             src={banner.imageUrl}
             alt={banner.title || 'Banner'}
             width={1920}
             height={648}
-            className="w-full h-auto aspect-[1920/648] rounded-xl object-cover"
+            className={`w-full h-auto rounded-xl transition-opacity duration-300 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            priority={currentBanner === 0} // Preload banner pertama
+            loading={currentBanner === 0 ? 'eager' : 'lazy'} // Lazy load banner lainnya
+            quality={85} // Kualitas tinggi untuk mempertahankan detail
+            sizes="100vw" // Ukuran penuh untuk mempertahankan dimensi asli
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(true)}
+            // Mempertahankan ukuran asli tanpa pembatasan
+            style={{
+              width: '100%',
+              height: 'auto',
+              objectFit: 'contain' // Mempertahankan aspect ratio asli
+            }}
           />
         ) : (
           <div className="w-full h-auto aspect-[1920/648] rounded-xl bg-gradient-to-br from-primary via-primary-dark to-primary-600" />
@@ -107,7 +128,10 @@ export default function Banner() {
             {banners.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentBanner(index)}
+                onClick={() => {
+                  setCurrentBanner(index);
+                  setImageLoaded(false);
+                }}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentBanner 
                     ? 'bg-white scale-125' 

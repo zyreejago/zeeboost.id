@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminData } from '@/hooks/useAdminData';
 import AdminAuth from '@/components/admin/AdminAuth';
 import Sidebar from '@/components/admin/Sidebar';
@@ -17,7 +17,7 @@ import ReviewManagement from '@/components/admin/ReviewManagement';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default false for mobile-first
   
   const {
     transactions,
@@ -102,10 +102,27 @@ export default function AdminDashboard() {
     }
   };
 
+  // Set initial sidebar state based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <AdminAuth>
       <div className="min-h-screen bg-gray-100">
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 flex relative">
           <Sidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -113,10 +130,14 @@ export default function AdminDashboard() {
             setSidebarOpen={setSidebarOpen}
           />
           
-          <div className="flex-1 flex flex-col">
-            <Header activeTab={activeTab} />
+          <div className="flex-1 flex flex-col min-w-0">
+            <Header 
+              activeTab={activeTab} 
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+            />
             
-            <main className="flex-1 p-6 overflow-auto">
+            <main className="flex-1 p-4 md:p-6 overflow-auto">
               {renderContent()}
             </main>
           </div>

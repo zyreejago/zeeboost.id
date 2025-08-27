@@ -63,67 +63,120 @@ export default function TopupPage() {
               <p className="text-sm sm:text-base text-gray-600">Pilih metode yang paling sesuai untuk Anda</p>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <button
-                onClick={() => setActiveMethod('gamepass')}
-                className={`group p-4 sm:p-6 lg:p-8 rounded-2xl border-2 transition-all duration-300 text-left shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
-                  activeMethod === 'gamepass'
-                    ? 'border-primary bg-gradient-to-br from-primary-50 to-primary-100 shadow-primary/20'
-                    : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-primary-50'
-                }`}
-              >
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 mt-1 transition-all ${
-                    activeMethod === 'gamepass' 
-                      ? 'bg-primary border-primary shadow-lg' 
-                      : 'border-gray-300 group-hover:border-primary'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <i className="fas fa-gamepad text-primary text-lg sm:text-xl"></i>
-                      <h3 className="font-bold text-lg sm:text-xl text-gray-800">Via Gamepass</h3>
-                      <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Recommended</span>
+            <div className="space-y-6">
+              {/* Row 1 - Via Gamepass & Via Login */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Card 1 - Via Gamepass */}
+                <button
+                  onClick={() => setActiveMethod('gamepass')}
+                  className={`group p-6 lg:p-8 rounded-2xl border-2 transition-all duration-300 text-left shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
+                    activeMethod === 'gamepass'
+                      ? 'border-primary bg-gradient-to-br from-primary-50 to-primary-100 shadow-primary/20'
+                      : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-primary-50'
+                  }`}
+                >
+                  <div className="flex items-start space-x-4 h-full">
+                    <div className={`w-6 h-6 rounded-full border-2 mt-1 transition-all ${
+                      activeMethod === 'gamepass' 
+                        ? 'bg-primary border-primary shadow-lg' 
+                        : 'border-gray-300 group-hover:border-primary'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <i className="fas fa-gamepad text-primary text-xl"></i>
+                        <h3 className="font-bold text-xl text-gray-800">Via Gamepass</h3>
+                        <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Recommended</span>
+                      </div>
+                      <p className="text-base text-gray-600 mb-4">Topup melalui pembelian gamepass Roblox</p>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center text-green-600">
+                          <i className="fas fa-shield-alt mr-1"></i>
+                          <span>100% Aman</span>
+                        </div>
+                        <div className="flex items-center text-blue-600">
+                          <i className="fas fa-clock mr-1"></i>
+                          <span>Delay 5 Hari</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm sm:text-base text-gray-600 mb-3">Topup melalui pembelian gamepass Roblox</p>
-                    <div className="flex items-center space-x-4 text-xs sm:text-sm">
+                  </div>
+                </button>
+                
+                {/* Card 2 - Via Login */}
+                <button
+                  onClick={() => setActiveMethod('login')}
+                  className={`group p-6 lg:p-8 rounded-2xl border-2 transition-all duration-300 text-left shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
+                    activeMethod === 'login'
+                      ? 'border-primary bg-gradient-to-br from-primary-50 to-primary-100 shadow-primary/20'
+                      : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-primary-50'
+                  }`}
+                >
+                  <div className="flex items-start space-x-4 h-full">
+                    <div className={`w-6 h-6 rounded-full border-2 mt-1 transition-all ${
+                      activeMethod === 'login' 
+                        ? 'bg-primary border-primary shadow-lg' 
+                        : 'border-gray-300 group-hover:border-primary'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <i className="fas fa-sign-in-alt text-primary text-xl"></i>
+                        <h3 className="font-bold text-xl text-gray-800">Via Login</h3>
+                      </div>
+                      <p className="text-base text-gray-600 mb-4">Topup melalui login akun Roblox kalian dengan cepat</p>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center text-blue-600">
+                          <i className="fas fa-bolt mr-1"></i>
+                          <span>Robux Instan</span>
+                        </div>
+                        <div className="flex items-center text-purple-600">
+                          <i className="fas fa-user-shield mr-1"></i>
+                          <span>Secure Login</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Row 2 - Via Gift Card (Full Width) */}
+              <div className="relative group p-6 lg:p-8 rounded-2xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 via-white to-orange-100 text-left shadow-lg cursor-not-allowed overflow-hidden transition-all duration-300 hover:shadow-xl">
+                {/* Disabled overlay dengan efek glassmorphism */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/40 to-white/60 backdrop-blur-[2px] z-10 rounded-2xl"></div>
+                
+                <div className="relative z-0 flex items-start space-x-4 h-full">
+                  <div className="w-6 h-6 rounded-full border-2 border-orange-300 bg-orange-100 mt-1" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <i className="fas fa-gift text-orange-600 text-xl"></i>
+                      <h3 className="font-bold text-xl text-gray-800">Via Gift Card</h3>
+                      <span className="bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 text-xs px-2 py-1 rounded-full font-medium border border-orange-300">Coming Soon</span>
+                    </div>
+                    <p className="text-base text-gray-600 mb-4">Topup menggunakan Roblox Gift Card - Segera tersedia untuk kemudahan Anda</p>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center text-orange-600">
+                        <i className="fas fa-credit-card mr-1"></i>
+                        <span>Gift Card Support</span>
+                      </div>
                       <div className="flex items-center text-green-600">
-                        <i className="fas fa-shield-alt mr-1"></i>
-                        <span>100% Aman</span>
+                        <i className="fas fa-star mr-1"></i>
+                        <span>Premium Feature</span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setActiveMethod('login')}
-                className={`group p-4 sm:p-6 lg:p-8 rounded-2xl border-2 transition-all duration-300 text-left shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
-                  activeMethod === 'login'
-                    ? 'border-primary bg-gradient-to-br from-primary-50 to-primary-100 shadow-primary/20'
-                    : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-primary-50'
-                }`}
-              >
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 mt-1 transition-all ${
-                    activeMethod === 'login' 
-                      ? 'bg-primary border-primary shadow-lg' 
-                      : 'border-gray-300 group-hover:border-primary'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <i className="fas fa-sign-in-alt text-primary text-lg sm:text-xl"></i>
-                      <h3 className="font-bold text-lg sm:text-xl text-gray-800">Via Login</h3>
-                    </div>
-                    <p className="text-sm sm:text-base text-gray-600 mb-3">Topup melalui login akun Roblox</p>
-                    <div className="flex items-center space-x-4 text-xs sm:text-sm">
                       <div className="flex items-center text-blue-600">
-                        <i className="fas fa-shield-alt mr-1"></i>
-                        <span>Tersedia</span>
+                        <i className="fas fa-clock mr-1"></i>
+                        <span>Segera Hadir</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </button>
+                
+                {/* Enhanced shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-200/40 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-3000 ease-in-out"></div>
+                
+                {/* Decorative elements */}
+                <div className="absolute top-6 right-6 w-4 h-4 bg-orange-300 rounded-full opacity-60"></div>
+                <div className="absolute bottom-6 right-8 w-3 h-3 bg-orange-400 rounded-full opacity-40"></div>
+                <div className="absolute top-1/2 right-10 w-2 h-2 bg-orange-500 rounded-full opacity-50"></div>
+              </div>
             </div>
           </div>
           
