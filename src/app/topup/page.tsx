@@ -122,14 +122,14 @@ export default function TopupPage() {
                         <i className="fas fa-sign-in-alt text-primary text-xl"></i>
                         <h3 className="font-bold text-xl text-gray-800">Via Login</h3>
                       </div>
-                      <p className="text-base text-gray-600 mb-4">Topup melalui login akun Roblox kalian dengan cepat</p>
+                      <p className="text-base text-gray-600 mb-4">Topup melalui login akun Roblox kalian</p>
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="flex items-center text-blue-600">
-                          <i className="fas fa-bolt mr-1"></i>
+                          <i className="fas fa-shield-alt mr-1"></i>
                           <span>Robux Instan</span>
                         </div>
                         <div className="flex items-center text-purple-600">
-                          <i className="fas fa-user-shield mr-1"></i>
+                          <i className="fas fa-user-lock mr-1"></i>
                           <span>Secure Login</span>
                         </div>
                       </div>
@@ -157,10 +157,10 @@ export default function TopupPage() {
                         <i className="fas fa-credit-card mr-1"></i>
                         <span>Gift Card Support</span>
                       </div>
-                      <div className="flex items-center text-green-600">
+                      {/* <div className="flex items-center text-green-600">
                         <i className="fas fa-star mr-1"></i>
                         <span>Premium Feature</span>
-                      </div>
+                      </div> */}
                       <div className="flex items-center text-blue-600">
                         <i className="fas fa-clock mr-1"></i>
                         <span>Segera Hadir</span>
